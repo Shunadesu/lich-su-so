@@ -25,7 +25,7 @@ const UploadContent = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
 
   // Fetch content for editing
-  const { data: editData, isLoading: isLoadingEdit } = useQuery(
+  const { isLoading: isLoadingEdit } = useQuery(
     ['content', editId],
     () => contentAPI.getById(editId),
     {
@@ -42,8 +42,6 @@ const UploadContent = () => {
       }
     }
   );
-
-  // editData is used in onSuccess callback above
 
   const uploadMutation = useMutation(
     (data) => editId ? contentAPI.update(editId, data) : contentAPI.create(data),

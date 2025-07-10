@@ -156,7 +156,6 @@ const ContentDetail = () => {
     );
   }
 
-  const canEdit = user && (content.author?._id === user.id || isTeacher());
   const canDelete = user && (content.author?._id === user.id || isTeacher());
   const canApprove = user && isTeacher() && !content.isApproved;
 

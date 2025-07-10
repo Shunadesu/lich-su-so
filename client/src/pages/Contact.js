@@ -7,9 +7,7 @@ import {
   Mail,
   Clock,
   Send,
-  MessageSquare,
-  User,
-  FileText
+  MessageSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

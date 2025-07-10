@@ -5,15 +5,10 @@ import {
   FileText, 
   Plus, 
   BarChart3, 
-  Calendar, 
-  BookOpen, 
-  UserPlus,
   Eye,
-  Download,
   CheckCircle,
   XCircle,
-  TrendingUp,
-  Activity
+  UserPlus
 } from 'lucide-react';
 import { authAPI, contentAPI, userAPI } from '../services/api';
 import useAuthStore from '../store/authStore';

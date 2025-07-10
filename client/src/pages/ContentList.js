@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { Search, Filter, Download, Eye, Calendar, User, Bug } from 'lucide-react';
+import { Search, Download, Eye, Calendar, User } from 'lucide-react';
 import { contentAPI } from '../services/api';
+import { Link } from 'react-router-dom';
 
 const ContentList = ({ category }) => {
   // If no category is provided, show all content

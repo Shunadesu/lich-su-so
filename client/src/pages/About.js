@@ -17,10 +17,10 @@ import {
   Image,
   Download
 } from 'lucide-react';
-import useScrollToTop from '../hooks/useScrollToTop';
+// import useScrollToTop from '../hooks/useScrollToTop';
 
 const About = () => {
-  const { scrollToSection } = useScrollToTop();
+  // const { scrollToSection } = useScrollToTop();
 
   const stats = [
     { 

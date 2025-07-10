@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from 'react-query';
-import { Users, FileText, CheckCircle, XCircle, Search, Filter, Trash2, Eye } from 'lucide-react';
+import { Users, FileText, CheckCircle, XCircle, Search, Trash2 } from 'lucide-react';
 import { userAPI, contentAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -8,7 +8,6 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
 
   // Users Query
   const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery(
