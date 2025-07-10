@@ -1,0 +1,118 @@
+/* Custom Swiper Styles */
+.hero-swiper {
+  height: 100vh;
+  min-height: 600px;
+  width: 100%;
+}
+
+.hero-swiper .swiper-slide {
+  position: relative;
+  height: 100%;
+}
+
+.hero-swiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-swiper {
+  height: 500px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+/* Custom Navigation Buttons */
+.my-swiper .swiper-button-next,
+.my-swiper .swiper-button-prev {
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.my-swiper .swiper-button-next:hover,
+.my-swiper .swiper-button-prev:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.my-swiper .swiper-button-next::after,
+.my-swiper .swiper-button-prev::after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Custom Pagination */
+.my-swiper .swiper-pagination-bullet {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.my-swiper .swiper-pagination-bullet-active {
+  background: white;
+  transform: scale(1.2);
+}
+
+.my-swiper .swiper-slide {
+  position: relative;
+  height: 100%;
+}
+
+.my-swiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-swiper .swiper-slide .absolute {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  backdrop-filter: blur(2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-swiper {
+    height: 80vh;
+    min-height: 500px;
+  }
+  
+  .my-swiper {
+    height: 400px;
+  }
+  
+  .my-swiper .swiper-slide h2 {
+    font-size: 2rem;
+  }
+  
+  .my-swiper .swiper-slide p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-swiper {
+    height: 70vh;
+    min-height: 400px;
+  }
+  
+  .my-swiper {
+    height: 350px;
+  }
+  
+  .my-swiper .swiper-slide h2 {
+    font-size: 1.5rem;
+  }
+  
+  .my-swiper .swiper-slide p {
+    font-size: 0.9rem;
+  }
+} 
