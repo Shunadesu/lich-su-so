@@ -24,7 +24,7 @@ const corsOptions = {
       'https://lich-su-so-client.onrender.com',
       'https://lich-su-so.vercel.app',
       'https://lich-su-so.netlify.app',
-      // Add your Render frontend URL here
+      'https://lich-su-so-zuna.vercel.app', // Thêm domain frontend mới
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
     
