@@ -80,6 +80,7 @@ export const contentAPI = {
 export const userAPI = {
   getAll: (params) => api.get('/users', { params }),
   getById: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   changePassword: (id, data) => api.put(`/users/${id}/password`, data),
   updateStatus: (id, data) => api.put(`/users/${id}/status`, data),

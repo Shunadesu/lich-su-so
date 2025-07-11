@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import { contentAPI, userAPI } from '../services/api';
+import StudentFeatures from '../components/StudentFeatures';
 
 const Home = () => {
   const { user } = useAuthStore();
@@ -103,7 +104,7 @@ const Home = () => {
     ['recent-activities'],
     async () => {
       const response = await contentAPI.getRecentActivities({ limit: 6 });
-      return response.data;
+      return response.data.data;
     },
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
@@ -397,6 +398,15 @@ const Home = () => {
         </section>
       )}
 
+      {/* Student Features Section */}
+      {user && !isTeacher && (
+        <section className="py-12 bg-white">
+          <div className="container mx-auto px-4">
+            <StudentFeatures />
+          </div>
+        </section>
+      )}
+
       {/* Categories Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -514,7 +524,7 @@ const Home = () => {
             ) : Array.isArray(recentActivities) && recentActivities.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {recentActivities.map((activity, index) => {
-                  console.log(recentActivities);
+                  
                   // Format time from API data
                   const formatTime = (timeString) => {
                     if (!timeString) return 'Vừa xong';

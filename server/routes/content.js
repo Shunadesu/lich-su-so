@@ -41,9 +41,16 @@ const upload = multer({
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category, subCategory, search, page = 1, limit = 10, author } = req.query;
+    const { category, subCategory, search, page = 1, limit = 10, author, authorRole, isApproved } = req.query;
     
-    const query = { isPublic: true, isApproved: true };
+    const query = { isPublic: true };
+    
+    // Only filter by isApproved if explicitly provided, otherwise default to approved content
+    if (isApproved !== undefined) {
+      query.isApproved = isApproved === 'true';
+    } else {
+      query.isApproved = true; // Default to approved content for public access
+    }
     
     if (category) query.category = category;
     if (subCategory) query.subCategory = subCategory;
@@ -54,28 +61,36 @@ router.get('/', async (req, res) => {
     }
     
     console.log('Content query:', query);
-    console.log('Query params:', { category, subCategory, search, page, limit, author });
+    console.log('Query params:', { category, subCategory, search, page, limit, author, authorRole });
     
     const skip = (page - 1) * limit;
     
+    // First get all contents
     const contents = await Content.find(query)
-      .populate('author', 'fullName school')
+      .populate('author', 'fullName school role')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
     
+    // Filter by author role if specified
+    let filteredContents = contents;
+    if (authorRole) {
+      filteredContents = contents.filter(content => content.author?.role === authorRole);
+    }
+    
+    // Get total count for pagination (without role filter for accurate count)
     const total = await Content.countDocuments(query);
     
-    console.log('Found contents:', contents.length, 'Total:', total);
-    console.log('Contents:', contents.map(c => ({ id: c._id, title: c.title, category: c.category, isApproved: c.isApproved, isPublic: c.isPublic })));
+    console.log('Found contents:', filteredContents.length, 'Total:', total);
+    console.log('Contents:', filteredContents.map(c => ({ id: c._id, title: c.title, category: c.category, authorRole: c.author?.role, isApproved: c.isApproved, isPublic: c.isPublic })));
     
     res.json({
       success: true,
-      data: contents,
+      data: filteredContents,
       pagination: {
         current: parseInt(page),
         total: Math.ceil(total / limit),
-        hasNext: skip + contents.length < total,
+        hasNext: skip + filteredContents.length < total,
         hasPrev: page > 1
       }
     });
@@ -257,7 +272,17 @@ router.post('/', auth, upload.single('file'), [
       'lich-su-10': ['bai-giang-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'video', 'hinh-anh', 'bai-kiem-tra'],
       'lich-su-11': ['bai-giang-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'video', 'hinh-anh', 'bai-kiem-tra'],
       'lich-su-12': ['bai-giang-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'video', 'hinh-anh', 'bai-kiem-tra', 'on-thi-tnthpt'],
-      'lich-su-dia-phuong': ['tu-lieu-lich-su-goc', 'video', 'hinh-anh', 'san-pham-hoc-tap']
+      'lich-su-dia-phuong': [
+        'tu-lieu-lich-su-goc', 
+        'video', 
+        'hinh-anh', 
+        'san-pham-hoc-tap',
+        'tai-lieu-hoc-tap',
+        'hinh-anh-hoc-tap',
+        'video-hoc-tap',
+        'bai-tap-hoc-sinh',
+        'du-an-hoc-tap'
+      ]
     };
     
     const category = req.body.category;
@@ -305,13 +330,24 @@ router.post('/', auth, upload.single('file'), [
       userRole: req.user.role
     });
     
-    // Check permissions
-    if (req.user.role === 'student' && subCategory !== 'san-pham-hoc-tap') {
-      console.log('Student trying to upload non-study product');
-      return res.status(403).json({
-        success: false,
-        message: 'Học sinh chỉ được đăng tải sản phẩm học tập'
-      });
+    // Check permissions for students
+    if (req.user.role === 'student') {
+      const allowedStudentSubCategories = [
+        'san-pham-hoc-tap',
+        'tai-lieu-hoc-tap',
+        'hinh-anh-hoc-tap',
+        'video-hoc-tap',
+        'bai-tap-hoc-sinh',
+        'du-an-hoc-tap'
+      ];
+      
+      if (!allowedStudentSubCategories.includes(subCategory)) {
+        console.log('Student trying to upload restricted content type:', subCategory);
+        return res.status(403).json({
+          success: false,
+          message: 'Học sinh chỉ được đăng tải tài liệu học tập, sản phẩm học tập, hình ảnh và video học tập'
+        });
+      }
     }
     
     // Determine file type

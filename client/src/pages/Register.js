@@ -177,17 +177,26 @@ const Register = () => {
 
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Vai trò
+                Vai trò *
               </label>
               <div className="mt-1">
-                <input
-                  type="text"
-                  value="Học sinh"
-                  disabled
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
-                />
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={`appearance-none block w-full px-3 py-2 border ${
+                    errors.role ? 'border-red-300' : 'border-gray-300'
+                  } rounded-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm`}
+                >
+                  <option value="student">Học sinh</option>
+                  <option value="teacher">Giáo viên</option>
+                </select>
+                {errors.role && (
+                  <p className="mt-2 text-sm text-red-600">{errors.role}</p>
+                )}
                 <p className="mt-1 text-sm text-gray-500">
-                  Chỉ có thể đăng ký tài khoản học sinh. Tài khoản giáo viên chỉ được tạo bởi giáo viên khác.
+                  Chọn vai trò phù hợp với bạn. Giáo viên sẽ có quyền quản lý hệ thống.
                 </p>
               </div>
             </div>

@@ -17,8 +17,8 @@ const UploadContent = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'lich-su-10',
-    subCategory: 'bai-giang-dien-tu',
+    category: isStudent() ? 'lich-su-dia-phuong' : 'lich-su-10',
+    subCategory: isStudent() ? 'san-pham-hoc-tap' : 'bai-giang-dien-tu',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
@@ -117,10 +117,17 @@ const UploadContent = () => {
     if (name === 'category') {
       // Reset subCategory when category changes
       const newSubCategories = getSubCategories(value);
+      let defaultSubCategory = newSubCategories.length > 0 ? newSubCategories[0].value : '';
+      
+      // For students, prefer 'san-pham-hoc-tap' if available
+      if (isStudent() && newSubCategories.some(sub => sub.value === 'san-pham-hoc-tap')) {
+        defaultSubCategory = 'san-pham-hoc-tap';
+      }
+      
       setFormData(prev => ({
         ...prev,
         [name]: value,
-        subCategory: newSubCategories.length > 0 ? newSubCategories[0].value : ''
+        subCategory: defaultSubCategory
       }));
     } else {
       setFormData(prev => ({
@@ -167,10 +174,21 @@ const UploadContent = () => {
       return;
     }
 
-    // Check student permissions
-    if (isStudent() && formData.subCategory !== 'san-pham-hoc-tap') {
-      toast.error('Học sinh chỉ được đăng tải sản phẩm học tập');
-      return;
+    // Check student permissions (now with better default handling)
+    if (isStudent()) {
+      const allowedStudentSubCategories = [
+        'san-pham-hoc-tap',
+        'tai-lieu-hoc-tap',
+        'hinh-anh-hoc-tap',
+        'video-hoc-tap',
+        'bai-tap-hoc-sinh',
+        'du-an-hoc-tap'
+      ];
+      
+      if (!allowedStudentSubCategories.includes(formData.subCategory)) {
+        toast.error('Vui lòng chọn loại nội dung phù hợp cho học sinh');
+        return;
+      }
     }
 
     // Additional validation
@@ -238,7 +256,12 @@ const UploadContent = () => {
         { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
         { value: 'video', label: 'Video' },
         { value: 'hinh-anh', label: 'Hình ảnh' },
-        { value: 'san-pham-hoc-tap', label: 'Sản phẩm học tập' }
+        { value: 'san-pham-hoc-tap', label: 'Sản phẩm học tập' },
+        { value: 'tai-lieu-hoc-tap', label: 'Tài liệu học tập' },
+        { value: 'hinh-anh-hoc-tap', label: 'Hình ảnh học tập' },
+        { value: 'video-hoc-tap', label: 'Video học tập' },
+        { value: 'bai-tap-hoc-sinh', label: 'Bài tập học sinh' },
+        { value: 'du-an-hoc-tap', label: 'Dự án học tập' }
       ]
     };
     return subCategories[category] || [];

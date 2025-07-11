@@ -13,6 +13,9 @@ import UploadContent from './pages/UploadContent';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import TeacherDashboard from './pages/TeacherDashboard';
+import StudentDashboard from './pages/StudentDashboard';
+import UserManagement from './pages/UserManagement';
+import ContentApproval from './pages/ContentApproval';
 import CreateFirstTeacher from './pages/CreateFirstTeacher';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -60,6 +63,21 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute requireTeacher>
               <TeacherDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/user-management" element={
+            <ProtectedRoute requireTeacher>
+              <UserManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/content-approval" element={
+            <ProtectedRoute requireTeacher>
+              <ContentApproval />
+            </ProtectedRoute>
+          } />
+          <Route path="/student-dashboard" element={
+            <ProtectedRoute>
+              <StudentDashboard />
             </ProtectedRoute>
           } />
           <Route path="/create-first-teacher" element={<CreateFirstTeacher />} />

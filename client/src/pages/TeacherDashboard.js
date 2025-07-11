@@ -43,12 +43,12 @@ const TeacherDashboard = () => {
       });
       
       return {
-        myContent: contentStats.data,
-        students: userStats.data,
-        totalStudents: userStats.data?.length || 0,
-        totalContent: contentStats.data?.length || 0,
-        approvedContent: contentStats.data?.filter(c => c.isApproved).length || 0,
-        pendingContent: contentStats.data?.filter(c => !c.isApproved).length || 0
+        myContent: contentStats.data.data,
+        students: userStats.data.data,
+        totalStudents: userStats.data.data?.length || 0,
+        totalContent: contentStats.data.data?.length || 0,
+        approvedContent: contentStats.data.data?.filter(c => c.isApproved).length || 0,
+        pendingContent: contentStats.data.data?.filter(c => !c.isApproved).length || 0
       };
     },
     {
@@ -143,7 +143,9 @@ const TeacherDashboard = () => {
 
   const recentContent = dashboardData?.myContent?.slice(0, 5) || [];
   const allMyContent = dashboardData?.myContent || [];
-
+  console.log('dashboardData:', dashboardData); 
+  console.log('recentContent:', recentContent);
+  console.log('allMyContent:', allMyContent);
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">

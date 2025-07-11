@@ -55,6 +55,9 @@ const isTeacher = (req, res, next) => {
   next();
 };
 
+// Alias for isTeacher (for consistency)
+const teacherAuth = isTeacher;
+
 // Middleware to check if user is student
 const isStudent = (req, res, next) => {
   if (req.user.role !== 'student') {
@@ -66,4 +69,4 @@ const isStudent = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, isTeacher, isStudent }; 
+module.exports = { auth, isTeacher, teacherAuth, isStudent }; 

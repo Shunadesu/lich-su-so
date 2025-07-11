@@ -231,8 +231,8 @@ const AdminPanel = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {Array.isArray(usersData?.data) && usersData.data.length > 0 ? (
-                          usersData.data.map((user) => (
+                        {Array.isArray(usersData?.data.data) && usersData.data.data.length > 0 ? (
+                          usersData.data.data.map((user) => (
                             <tr key={user._id}>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
@@ -347,8 +347,8 @@ const AdminPanel = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {Array.isArray(pendingContent?.data) && pendingContent.data.length > 0 ? (
-                      pendingContent.data.map((content) => (
+                    {Array.isArray(pendingContent?.data.data) && pendingContent.data.data.length > 0 ? (
+                      pendingContent.data.data.map((content) => (
                         <div key={content._id} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">

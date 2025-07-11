@@ -27,7 +27,12 @@ const contentSchema = new mongoose.Schema({
       'hinh-anh',
       'bai-kiem-tra',
       'on-thi-tnthpt',
-      'san-pham-hoc-tap'
+      'san-pham-hoc-tap',
+      'tai-lieu-hoc-tap',
+      'hinh-anh-hoc-tap',
+      'video-hoc-tap',
+      'bai-tap-hoc-sinh',
+      'du-an-hoc-tap'
     ]
   },
   fileType: {
