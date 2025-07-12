@@ -13,7 +13,6 @@ import {
   Download,
   Eye,
   Calendar,
-  User
 } from 'lucide-react';
 import { contentAPI } from '../services/api';
 import useAuthStore from '../store/authStore';

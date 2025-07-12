@@ -34,8 +34,8 @@ const Home = () => {
     {
       id: 1,
       title: 'Chào mừng đến với Lịch Sử Số',
-      subtitle: 'Nền tảng giáo dục lịch sử trực tuyến hàng đầu',
-      description: 'Khám phá kho tài liệu phong phú với hơn 650+ tài liệu chất lượng cao',
+      subtitle: 'Nền tảng giáo dục lịch sử trực tuyến',
+      description: 'Khám phá kho tài liệu phong phú với tài liệu chất lượng cao',
       image: 'https://biowish.vn/wp-content/uploads/2017/08/resources-banner-1.jpg',
       buttonText: 'Khám phá ngay',
       buttonLink: '/content'
@@ -144,7 +144,7 @@ const Home = () => {
         'Hình ảnh',
         'Bài kiểm tra'
       ],
-      count: '150+'
+      // count: '150+'
     },
     {
       id: 'lich-su-11',
@@ -160,7 +160,7 @@ const Home = () => {
         'Hình ảnh',
         'Bài kiểm tra'
       ],
-      count: '180+'
+      // count: '180+'
     },
     {
       id: 'lich-su-12',
@@ -177,7 +177,7 @@ const Home = () => {
         'Bài kiểm tra',
         'Ôn thi TNTHPT'
       ],
-      count: '200+'
+      // count: '200+'
     },
     {
       id: 'lich-su-dia-phuong',
@@ -186,51 +186,43 @@ const Home = () => {
       icon: Award,
       color: 'bg-gradient-to-br from-amber-800 to-orange-900',
       subCategories: [
-        'Lịch sử Mỹ Tho',
-        'Lịch sử Tiền Giang',
-        'Lịch sử cách mạng địa phương',
-        'Danh nhân địa phương',
-        'Văn hóa truyền thống'
+        'Lịch sử địa phương',
+        'Tải lên cho Giáo viên',
       ],
-      count: '120+'
+      // count: '120+'
     }
   ];
 
   const stats = [
     { 
       label: 'Tài liệu', 
-      value: '650+', 
       icon: FileText,
       color: 'bg-blue-500',
       description: 'Tài liệu đa dạng'
     },
     { 
       label: 'Video', 
-      value: '150+', 
       icon: Video,
       color: 'bg-red-500',
       description: 'Video học tập'
     },
     { 
       label: 'Hình ảnh', 
-      value: '1200+', 
       icon: Image,
       color: 'bg-green-500',
       description: 'Hình ảnh tư liệu'
     },
     { 
       label: 'Lượt tải', 
-      value: '15K+', 
       icon: Download,
       color: 'bg-purple-500',
-      description: 'Lượt tải về'
+      description: 'Có thể tải về'
     },
     { 
       label: 'Người dùng', 
-      value: '2500+', 
       icon: Users,
       color: 'bg-indigo-500',
-      description: 'Người dùng hoạt động'
+      description: 'Quản lý người dùng'
     }
   ];
 
@@ -264,7 +256,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section with Swiper Background */}
-      <section className="relative text-white overflow-hidden">
+      <section className="relative text-white overflow-hidden min-h-screen">
         {/* Swiper Background */}
         <div className="absolute inset-0 z-0">
           <Swiper
@@ -295,10 +287,25 @@ const Home = () => {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}></div>
         </div>
-
-        <div className="relative z-20 container mx-auto px-4 py-20">
+ 
+        <div className="relative z-20 container mx-auto px-4 py-24 md:py-44">
           <div className="text-center max-w-4xl mx-auto">
             {/* Logo and Title */}
+            
+            <div className="hidden md:block bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 border border-white/20 absolute top-5 right-0">
+              <div className="flex items-center justify-center">
+                <div className="text-right">
+                  <h2 className="text-2xl font-bold">Dữ liệu Lịch sử số</h2>
+                  <h3 className="text-lg font-semibold text-amber-100">SỞ GIÁO DỤC & ĐÀO TẠO</h3>
+                </div>
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center ml-4">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            
+
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6">
                 <BookOpen className="h-10 w-10 text-white" />
@@ -307,34 +314,31 @@ const Home = () => {
                 Lịch Sử Số
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-amber-100 font-light">
-                Nền tảng giáo dục lịch sử trực tuyến hàng đầu
+                Kính chào quý thầy cô giáo và các em học sinh
               </p>
             </div>
-            
+
             {/* Government Info */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-12 border border-white/20">
-              <div className="flex items-center justify-center mb-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 border border-white/20 md:absolute md:top-5 md:left-0 mb-4 md:mb-0">
+              <div className="flex items-center justify-center">
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mr-4">
                   <Award className="h-8 w-8 text-white" />
                 </div>
                 <div className="text-left">
                   <h2 className="text-2xl font-bold">UBND TỈNH ĐỒNG THÁP</h2>
-                  <h3 className="text-lg font-semibold text-amber-100">SỞ GIÁO DỤC & ĐÀO TẠO</h3>
+                  <h3 className="text-lg font-semibold text-amber-100">SỞ GIÁO DỤC & ĐÀO TẠO TỈNH ĐỒNG THÁP</h3>
                 </div>
               </div>
-              <p className="text-amber-100 text-lg">
-                Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử chính thức
-              </p>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+            <div className="hidden md:grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
               {stats.map((stat, index) => (
                 <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
                   <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3`}>
                     <stat.icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className="text-2xl font-bold mb-1">{stat.value}</div>
+                  {/* <div className="text-2xl font-bold mb-1">{stat.value}</div> */}
                   <div className="text-sm text-amber-100 font-medium">{stat.label}</div>
                   <div className="text-xs text-amber-200 mt-1">{stat.description}</div>
                 </div>
@@ -431,7 +435,7 @@ const Home = () => {
                   <div className="relative">
                     <category.icon className="h-16 w-16 mx-auto mb-6" />
                     <h3 className="text-2xl font-bold text-center mb-2">{category.title}</h3>
-                    <div className="text-center text-amber-100 font-semibold">{category.count} tài liệu</div>
+                    {/* <div className="text-center text-amber-100 font-semibold">{category.count} tài liệu</div> */}
                   </div>
                 </div>
                 <div className="p-8">
@@ -500,10 +504,10 @@ const Home = () => {
             </p>
           </div>
           
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             {activitiesLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[1, 2, 3].map((index) => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {[1,2,3,4].map((index) => (
                   <div key={index} className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
                     <div className="flex items-center mb-4">
                       <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>

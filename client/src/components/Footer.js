@@ -4,10 +4,7 @@ import {
   BookOpen, 
   Mail, 
   Phone, 
-  MapPin, 
   Facebook, 
-  Youtube, 
-  Instagram,
   Award,
   Shield,
   Users,
@@ -34,17 +31,18 @@ const Footer = () => {
   ];
 
   const features = [
-    { icon: FileText, name: 'Tài liệu đa dạng', desc: '650+ tài liệu chất lượng' },
+    { icon: FileText, name: 'Tài liệu đa dạng', desc: 'Tài liệu chất lượng' },
     { icon: Shield, name: 'Bảo mật cao', desc: 'Hệ thống bảo mật đa lớp' },
-    { icon: Users, name: 'Cộng đồng', desc: '2500+ người dùng hoạt động' },
+    { icon: Users, name: 'Cộng đồng', desc: 'Người dùng hoạt động' },
     { icon: Award, name: 'Chất lượng', desc: 'Nội dung được kiểm duyệt' }
   ];
 
   const socialLinks = [
-    { icon: Facebook, name: 'Facebook', url: 'https://facebook.com' },
-    { icon: Youtube, name: 'YouTube', url: 'https://youtube.com' },
-    { icon: Instagram, name: 'Instagram', url: 'https://instagram.com' }
+    { icon: Facebook, name: 'Facebook', url: 'https://www.facebook.com/Hothenhan.835' },
+    { icon: Phone, name: 'Phone', url: 'tel:0978617277' },
+    { icon: Mail, name: 'Email', url: 'mailto:mahonhan.080305@gmail.com' }
   ];
+  
 
   return (
     <footer className="bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white">
@@ -64,7 +62,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-amber-100 mb-6 leading-relaxed">
-              Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử chính thức của UBND TỈNH ĐỒNG THÁP - SỞ GIÁO DỤC & ĐÀO TẠO.
+              Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử của UBND TỈNH ĐỒNG THÁP - SỞ GIÁO DỤC & ĐÀO TẠO.
             </p>
             
             {/* Features */}
@@ -121,30 +119,36 @@ const Footer = () => {
           <div>
             <h4 className="text-xl font-semibold mb-6 text-white">Liên hệ</h4>
             <div className="space-y-4">
-              <div className="flex items-start">
-                <MapPin className="h-5 w-5 text-amber-300 mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <p className="text-amber-100 font-medium">Địa chỉ</p>
-                  <p className="text-amber-200 text-sm">
-                    Số 1, Đường 30/4, TP. Cao Lãnh<br />
-                    Tỉnh Đồng Tháp, Việt Nam
-                  </p>
-                </div>
-              </div>
+             
               
               <div className="flex items-center">
-                <Phone className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
-                <div>
+                
+                <div className="flex flex-col gap-2">
                   <p className="text-amber-100 font-medium">Điện thoại</p>
-                  <p className="text-amber-200 text-sm">(0277) 3.851.234</p>
+                  <div className="flex items-center mb-2">
+                    <Phone className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
+                    <p className="text-amber-200 text-sm">097 861 7277</p>
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
+                    <p className="text-amber-200 text-sm">098 458 0434</p>
+                  </div>
                 </div>
               </div>
+
+              
               
               <div className="flex items-center">
-                <Mail className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
-                <div>
+                <div className="flex flex-col gap-2">
                   <p className="text-amber-100 font-medium">Email</p>
-                  <p className="text-amber-200 text-sm">info@dongthap.edu.vn</p>
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
+                    <p className="text-amber-200 text-sm">honhan.080305@gmail.com</p>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 text-amber-300 mr-3 flex-shrink-0" />
+                    <p className="text-amber-200 text-sm">vantanhd2019@gmail.com</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,7 +202,7 @@ const Footer = () => {
           <div className="mt-4 pt-4 border-t border-amber-700/30 text-center">
             <div className="text-amber-200 text-sm">
               <p className="font-semibold">UBND TỈNH ĐỒNG THÁP - SỞ GIÁO DỤC & ĐÀO TẠO</p>
-              <p className="text-xs mt-1">Hệ thống quản lý tài liệu giáo dục lịch sử chính thức</p>
+              <p className="text-xs mt-1">Hệ thống quản lý tài liệu giáo dục lịch sử</p>
             </div>
           </div>
         </div>

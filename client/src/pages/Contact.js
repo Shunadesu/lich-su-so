@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft,
-  MapPin,
   Phone,
   Mail,
   Clock,
@@ -10,6 +9,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, EffectFade } from 'swiper/modules';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -47,21 +48,15 @@ const Contact = () => {
 
   const contactInfo = [
     {
-      icon: MapPin,
-      title: 'Địa chỉ',
-      content: 'Số 1, Đường 30/4, TP. Cao Lãnh, Tỉnh Đồng Tháp, Việt Nam',
-      color: 'text-blue-600'
-    },
-    {
       icon: Phone,
       title: 'Điện thoại',
-      content: '(0277) 3.851.234',
+      content: '097 861 7277',
       color: 'text-green-600'
     },
     {
       icon: Mail,
       title: 'Email',
-      content: 'info@dongthap.edu.vn',
+      content: 'honhan.080305@gmail.com',
       color: 'text-red-600'
     },
     {
@@ -72,29 +67,65 @@ const Contact = () => {
     }
   ];
 
-  const departments = [
+   const banners = [
     {
-      name: 'Phòng Giáo dục Trung học',
-      phone: '(0277) 3.851.235',
-      email: 'gdth@dongthap.edu.vn'
+      id: 1,
+      title: 'Chào mừng đến với Lịch Sử Số',
+      subtitle: 'Nền tảng giáo dục lịch sử trực tuyến',
+      description: 'Khám phá kho tài liệu phong phú với tài liệu chất lượng cao',
+      image: 'https://biowish.vn/wp-content/uploads/2017/08/resources-banner-1.jpg',
+      buttonText: 'Khám phá ngay',
+      buttonLink: '/content'
     },
     {
-      name: 'Phòng Giáo dục Tiểu học',
-      phone: '(0277) 3.851.236',
-      email: 'gdth@dongthap.edu.vn'
+      id: 2,
+      title: 'Tài liệu Lịch sử 12',
+      subtitle: 'Ôn thi THPT Quốc Gia',
+      description: 'Bộ tài liệu chuyên sâu phục vụ ôn thi tốt nghiệp THPT môn Lịch sử',
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2028&q=80',
+      buttonText: 'Xem tài liệu',
+      buttonLink: '/lich-su-12'
     },
     {
-      name: 'Phòng Khảo thí và Kiểm định',
-      phone: '(0277) 3.851.237',
-      email: 'ktkd@dongthap.edu.vn'
+      id: 3,
+      title: 'Lịch sử Địa phương',
+      subtitle: 'Văn hóa Tiền Giang',
+      description: 'Tìm hiểu về lịch sử, văn hóa và danh nhân của vùng đất Tiền Giang',
+      image: 'https://img.lovepik.com/bg/20231218/Antique-Library-Bookshelf-with-Books-A-Stunning-Background_2639167_wh860.jpg!/fw/860',
+      buttonText: 'Tìm hiểu thêm',
+      buttonLink: '/lich-su-dia-phuong'
     }
   ];
+
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white">
-        <div className="container mx-auto px-4 py-8">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white">
+        
+        <div className="absolute inset-0 z-0">
+          <Swiper
+            modules={[Autoplay, EffectFade]}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            effect="fade"
+            className="hero-swiper"
+            loop={true}
+          >
+            {banners.map((banner) => (
+              <SwiperSlide key={banner.id}>
+                <div className="relative h-full">
+                  <img
+                    src={banner.image}
+                    alt={banner.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-950/80 via-amber-900/70 to-orange-950/80"></div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        <div className="container mx-auto px-4 py-8 relative z-10 md:py-16 md:px-8">
           <div className="flex items-center mb-6">
             <Link
               to="/"
@@ -119,7 +150,7 @@ const Contact = () => {
               <h2 className="text-2xl font-bold mb-4">UBND TỈNH ĐỒNG THÁP</h2>
               <h3 className="text-lg font-semibold text-amber-100 mb-4">SỞ GIÁO DỤC & ĐÀO TẠO</h3>
               <p className="text-amber-100 text-lg">
-                Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử chính thức
+                Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử
               </p>
             </div>
           </div>
@@ -138,7 +169,7 @@ const Contact = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {contactInfo.map((info, index) => (
               <div key={index} className="bg-white rounded-2xl p-8 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">
                 <div className={`w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6`}>
@@ -256,14 +287,14 @@ const Contact = () => {
 
             {/* Departments */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              {/* <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Các phòng ban
               </h2>
               <p className="text-gray-600 mb-8">
                 Liên hệ trực tiếp với các phòng ban chuyên môn để được hỗ trợ tốt nhất.
-              </p>
+              </p> */}
               
-              <div className="space-y-6">
+              {/* <div className="space-y-6">
                 {departments.map((dept, index) => (
                   <div key={index} className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">{dept.name}</h3>
@@ -279,7 +310,7 @@ const Contact = () => {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div> */}
 
               {/* FAQ Section */}
               <div className="mt-12">
@@ -311,7 +342,7 @@ const Contact = () => {
                       Hệ thống có miễn phí không?
                     </h4>
                     <p className="text-gray-600 text-sm">
-                      Hoàn toàn miễn phí! Đây là hệ thống giáo dục chính thức của UBND Tỉnh Đồng Tháp.
+                      Hoàn toàn miễn phí! Đây là hệ thống giáo dục của UBND Tỉnh Đồng Tháp.
                     </p>
                   </div>
                 </div>
@@ -321,33 +352,7 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Vị trí của chúng tôi
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Trụ sở chính tại TP. Cao Lãnh, Tỉnh Đồng Tháp
-            </p>
-          </div>
-          
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="h-96 bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Bản đồ sẽ được hiển thị tại đây</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Số 1, Đường 30/4, TP. Cao Lãnh, Tỉnh Đồng Tháp
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    
     </div>
   );
 };

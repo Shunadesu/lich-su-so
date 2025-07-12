@@ -172,7 +172,6 @@ const Privacy = () => {
               <div className="space-y-2">
                 <p><strong>Email:</strong> privacy@dongthap.edu.vn</p>
                 <p><strong>Điện thoại:</strong> (0277) 3.851.234</p>
-                <p><strong>Địa chỉ:</strong> Số 1, Đường 30/4, TP. Cao Lãnh, Tỉnh Đồng Tháp</p>
               </div>
             </div>
 

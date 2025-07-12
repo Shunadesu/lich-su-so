@@ -32,7 +32,7 @@ const Header = () => {
               <BookOpen className="h-8 w-8" />
               <div>
                 <h1 className="text-xl font-bold">Lịch Sử Số</h1>
-                <p className="text-sm text-amber-100">Giáo dục Lịch sử</p>
+                <p className="text-sm text-amber-100">UBND TỈNH ĐỒNG THÁP</p>
               </div>
             </Link>
           </div>

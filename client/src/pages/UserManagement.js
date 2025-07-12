@@ -6,7 +6,6 @@ import {
   Edit, 
   Trash2, 
   Search, 
-  Filter,
   Eye,
   EyeOff,
   Shield,
@@ -14,8 +13,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  School,
-  BookOpen
 } from 'lucide-react';
 import { userAPI } from '../services/api';
 import useAuthStore from '../store/authStore';
@@ -35,8 +32,8 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserModal, setShowUserModal] = useState(false);
+  const [, setSelectedUser] = useState(null);
+  const [, setShowUserModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Form data for create/edit user

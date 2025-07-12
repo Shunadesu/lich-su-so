@@ -13,8 +13,6 @@ const Register = () => {
     confirmPassword: '',
     fullName: '',
     role: 'student',
-    email: '',
-    school: '',
     grade: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -88,10 +86,6 @@ const Register = () => {
     
     if (!formData.fullName) {
       newErrors.fullName = 'Họ tên là bắt buộc';
-    }
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -201,46 +195,7 @@ const Register = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm`}
-                  placeholder="Nhập email (không bắt buộc)"
-                />
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="school" className="block text-sm font-medium text-gray-700">
-                Trường học
-              </label>
-              <div className="mt-1">
-                <input
-                  id="school"
-                  name="school"
-                  type="text"
-                  value={formData.school}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
-                  placeholder="Nhập tên trường học"
-                />
-              </div>
-            </div>
-
+    
             <div>
               <label htmlFor="grade" className="block text-sm font-medium text-gray-700">
                 Lớp

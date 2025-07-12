@@ -9,7 +9,6 @@ import {
   Clock, 
   Star,
   ArrowLeft,
-  MapPin,
   Phone,
   Mail,
   FileText,
@@ -17,6 +16,8 @@ import {
   Image,
   Download
 } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, EffectFade } from 'swiper/modules';
 // import useScrollToTop from '../hooks/useScrollToTop';
 
 const About = () => {
@@ -25,35 +26,30 @@ const About = () => {
   const stats = [
     { 
       label: 'Tài liệu', 
-      value: '650+', 
       icon: FileText,
       color: 'bg-blue-500',
       description: 'Tài liệu đa dạng'
     },
     { 
       label: 'Video', 
-      value: '150+', 
       icon: Video,
       color: 'bg-red-500',
       description: 'Video học tập'
     },
     { 
       label: 'Hình ảnh', 
-      value: '1200+', 
       icon: Image,
       color: 'bg-green-500',
       description: 'Hình ảnh tư liệu'
     },
     { 
       label: 'Lượt tải', 
-      value: '15K+', 
       icon: Download,
       color: 'bg-purple-500',
       description: 'Lượt tải về'
     },
     { 
       label: 'Người dùng', 
-      value: '2500+', 
       icon: Users,
       color: 'bg-indigo-500',
       description: 'Người dùng hoạt động'
@@ -105,11 +101,66 @@ const About = () => {
     }
   ];
 
+
+   const banners = [
+    {
+      id: 1,
+      title: 'Chào mừng đến với Lịch Sử Số',
+      subtitle: 'Nền tảng giáo dục lịch sử trực tuyến',
+      description: 'Khám phá kho tài liệu phong phú với tài liệu chất lượng cao',
+      image: 'https://biowish.vn/wp-content/uploads/2017/08/resources-banner-1.jpg',
+      buttonText: 'Khám phá ngay',
+      buttonLink: '/content'
+    },
+    {
+      id: 2,
+      title: 'Tài liệu Lịch sử 12',
+      subtitle: 'Ôn thi THPT Quốc Gia',
+      description: 'Bộ tài liệu chuyên sâu phục vụ ôn thi tốt nghiệp THPT môn Lịch sử',
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2028&q=80',
+      buttonText: 'Xem tài liệu',
+      buttonLink: '/lich-su-12'
+    },
+    {
+      id: 3,
+      title: 'Lịch sử Địa phương',
+      subtitle: 'Văn hóa Tiền Giang',
+      description: 'Tìm hiểu về lịch sử, văn hóa và danh nhân của vùng đất Tiền Giang',
+      image: 'https://img.lovepik.com/bg/20231218/Antique-Library-Bookshelf-with-Books-A-Stunning-Background_2639167_wh860.jpg!/fw/860',
+      buttonText: 'Tìm hiểu thêm',
+      buttonLink: '/lich-su-dia-phuong'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white">
-        <div className="container mx-auto px-4 py-8">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white">
+        
+        <div className="absolute inset-0 z-0">
+          <Swiper
+            modules={[Autoplay, EffectFade]}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            effect="fade"
+            className="hero-swiper"
+            loop={true}
+          >
+            {banners.map((banner) => (
+              <SwiperSlide key={banner.id}>
+                <div className="relative h-full">
+                  <img
+                    src={banner.image}
+                    alt={banner.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-950/80 via-amber-900/70 to-orange-950/80"></div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+        
+        <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="flex items-center mb-6">
             <Link
               to="/"
@@ -128,13 +179,13 @@ const About = () => {
               Về Lịch Sử Số
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-amber-100 font-light">
-              Nền tảng giáo dục lịch sử trực tuyến hàng đầu
+              Nền tảng giáo dục lịch sử trực tuyến
             </p>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <h2 className="text-2xl font-bold mb-4">UBND TỈNH ĐỒNG THÁP</h2>
               <h3 className="text-lg font-semibold text-amber-100 mb-4">SỞ GIÁO DỤC & ĐÀO TẠO</h3>
               <p className="text-amber-100 text-lg">
-                Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử chính thức
+                Hệ thống quản lý và chia sẻ tài liệu giáo dục lịch sử
               </p>
             </div>
           </div>
@@ -209,8 +260,8 @@ const About = () => {
               <div key={index} className="text-center group">
                 <div className={`${stat.color} w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   <stat.icon className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                  </div>
+                  {/* <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div> */}
                 <div className="text-lg font-semibold text-gray-700 mb-1">{stat.label}</div>
                 <div className="text-sm text-gray-500">{stat.description}</div>
               </div>
@@ -288,19 +339,23 @@ const About = () => {
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="flex items-center justify-center">
-                <MapPin className="h-8 w-8 text-amber-300 mr-4" />
-                <div className="text-left">
-                  <p className="font-semibold">Địa chỉ</p>
-                  <p className="text-amber-100">Số 1, Đường 30/4, TP. Cao Lãnh</p>
-                </div>
-              </div>
+            
               
               <div className="flex items-center justify-center">
                 <Phone className="h-8 w-8 text-amber-300 mr-4" />
                 <div className="text-left">
                   <p className="font-semibold">Điện thoại</p>
-                  <p className="text-amber-100">(0277) 3.851.234</p>
+                
+                  <p className="text-amber-100">098 458 0434</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center">
+                <Phone className="h-8 w-8 text-amber-300 mr-4" />
+                <div className="text-left">
+                  <p className="font-semibold">Điện thoại</p>
+                  
+                  <p className="text-amber-100">098 458 0434</p>
                 </div>
               </div>
               
@@ -308,9 +363,12 @@ const About = () => {
                 <Mail className="h-8 w-8 text-amber-300 mr-4" />
                 <div className="text-left">
                   <p className="font-semibold">Email</p>
-                  <p className="text-amber-100">info@dongthap.edu.vn</p>
+                  <p className="text-amber-100">honhan.080305@gmail.com</p>
+                
                 </div>
               </div>
+
+            
             </div>
           </div>
         </div>

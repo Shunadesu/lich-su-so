@@ -221,9 +221,8 @@ const Terms = () => {
                 Nếu bạn có câu hỏi về điều khoản sử dụng, vui lòng liên hệ:
               </p>
               <div className="space-y-2">
-                <p><strong>Email:</strong> terms@dongthap.edu.vn</p>
-                <p><strong>Điện thoại:</strong> (0277) 3.851.234</p>
-                <p><strong>Địa chỉ:</strong> Số 1, Đường 30/4, TP. Cao Lãnh, Tỉnh Đồng Tháp</p>
+                <p><strong>Email:</strong> honhan.080305@gmail.com</p>
+                <p><strong>Điện thoại:</strong> 097 861 7277</p>
               </div>
             </div>
 
