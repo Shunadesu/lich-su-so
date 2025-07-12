@@ -137,6 +137,7 @@ const Home = () => {
       icon: BookOpen,
       color: 'bg-gradient-to-br from-amber-500 to-orange-600',
       subCategories: [
+        'Chuyên đề học tập',
         'Bài giảng điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
@@ -153,6 +154,7 @@ const Home = () => {
       icon: BookOpen,
       color: 'bg-gradient-to-br from-amber-600 to-orange-700',
       subCategories: [
+        'Chuyên đề học tập',
         'Bài giảng điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
@@ -169,6 +171,7 @@ const Home = () => {
       icon: BookOpen,
       color: 'bg-gradient-to-br from-amber-700 to-orange-800',
       subCategories: [
+        'Chuyên đề học tập',
         'Bài giảng điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
@@ -314,7 +317,7 @@ const Home = () => {
                 Lịch Sử Số
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-amber-100 font-light">
-                Kính chào quý thầy cô giáo và các em học sinh
+                Biết quá khứ, thấp sáng hiện tại, mở lối tương lai
               </p>
             </div>
 

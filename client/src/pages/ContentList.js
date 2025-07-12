@@ -51,6 +51,7 @@ const ContentList = ({ category }) => {
 
   const subCategories = {
     'lich-su-10': [
+      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
       { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
       { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
       { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
@@ -59,6 +60,7 @@ const ContentList = ({ category }) => {
       { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
     ],
     'lich-su-11': [
+      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
       { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
       { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
       { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
@@ -67,6 +69,7 @@ const ContentList = ({ category }) => {
       { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
     ],
     'lich-su-12': [
+      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
       { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
       { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
       { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },

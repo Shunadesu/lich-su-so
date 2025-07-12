@@ -243,32 +243,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Thống kê ấn tượng
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Những con số thể hiện sự phát triển và uy tín của hệ thống
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className={`${stat.color} w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="h-8 w-8 text-white" />
-                  </div>
-                  {/* <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div> */}
-                <div className="text-lg font-semibold text-gray-700 mb-1">{stat.label}</div>
-                <div className="text-sm text-gray-500">{stat.description}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
@@ -298,34 +273,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Đội ngũ thực hiện
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Những đơn vị và cá nhân đóng góp vào sự thành công của hệ thống
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {team.map((member, index) => (
-              <div key={index} className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-8 text-center border border-amber-200">
-                <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Award className="h-10 w-10 text-amber-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-900">{member.name}</h3>
-                <p className="text-amber-600 font-medium mb-4">{member.role}</p>
-                <p className="text-gray-600 leading-relaxed">
-                  {member.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    
 
       {/* Contact Section */}
       <section className="py-20 bg-gradient-to-br from-amber-800 to-orange-800 text-white">
