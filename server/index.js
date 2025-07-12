@@ -25,6 +25,7 @@ const corsOptions = {
       'https://lich-su-so.vercel.app',
       'https://lich-su-so.netlify.app',
       'https://lich-su-so-zuna.vercel.app', // Thêm domain frontend mới
+      'https://du-lieu-lich-su-so.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
     
