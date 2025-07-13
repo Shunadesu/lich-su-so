@@ -317,7 +317,7 @@ const Home = () => {
                 Lịch Sử Số
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-amber-100 font-light">
-                Biết quá khứ, thấp sáng hiện tại, mở lối tương lai
+                Biết quá khứ, thắp sáng hiện tại, mở lối tương lai
               </p>
             </div>
 
