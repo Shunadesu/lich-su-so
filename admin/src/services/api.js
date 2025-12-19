@@ -3,9 +3,10 @@ import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
 // Use proxy in development, relative path in production (Vercel will rewrite to lichsuso.online)
+// If Vercel rewrites don't work, set VITE_API_URL=https://lichsuso.online/api in Vercel environment variables
 const API_BASE_URL = import.meta.env.DEV 
   ? '/api'  // Use Vite proxy in development
-  : (import.meta.env.VITE_API_URL || '/api'); // Use relative path for Vercel rewrites
+  : (import.meta.env.VITE_API_URL || 'https://lichsuso.online/api'); // Direct URL as fallback if rewrites fail
 
 // Helper function to get file URL (now works with Cloudinary)
 export const getFileUrl = (fileUrl) => {

@@ -35,10 +35,23 @@ const corsOptions = {
       'https://lich-su-so.netlify.app',
       'https://lich-su-so-zuna.vercel.app',
       'https://du-lieu-lich-su-so.vercel.app',
+      // Allow all Vercel domains (wildcard pattern)
+      /^https:\/\/.*\.vercel\.app$/,
+      /^https:\/\/.*\.vercel\.dev$/,
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Check if origin matches any allowed pattern
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return allowed === origin;
+      } else if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
@@ -72,6 +85,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
 app.use('/uploads', express.static('uploads'));
+
+// Let's Encrypt ACME Challenge - serve from .well-known directory
+// This allows Let's Encrypt to verify domain ownership
+app.use('/.well-known/acme-challenge', express.static(path.join(__dirname, '.well-known', 'acme-challenge')));
 
 // Rate limiting
 const limiter = rateLimit({
