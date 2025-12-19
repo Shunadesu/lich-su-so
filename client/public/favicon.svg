@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B8860B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B6914;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad1)" stroke="#654321" stroke-width="2"/>
+  
+  <!-- Book icon -->
+  <rect x="25" y="30" width="50" height="40" rx="2" fill="#FFFFFF" opacity="0.95"/>
+  <rect x="25" y="30" width="50" height="40" rx="2" fill="none" stroke="#8B6914" stroke-width="2"/>
+  
+  <!-- Book pages -->
+  <line x1="50" y1="30" x2="50" y2="70" stroke="#8B6914" stroke-width="1.5"/>
+  
+  <!-- Decorative lines on book -->
+  <line x1="35" y1="45" x2="45" y2="45" stroke="#B8860B" stroke-width="1"/>
+  <line x1="35" y1="52" x2="45" y2="52" stroke="#B8860B" stroke-width="1"/>
+  <line x1="35" y1="59" x2="45" y2="59" stroke="#B8860B" stroke-width="1"/>
+  
+  <!-- Number "10" or "L" for Lịch Sử -->
+  <text x="50" y="58" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#8B6914" text-anchor="middle">L</text>
+</svg>
+

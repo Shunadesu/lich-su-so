@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, FileText, Tag } from 'lucide-react';
+import { Upload, X, FileText, Tag, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react';
 import { contentAPI } from '../services/api';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -23,6 +23,12 @@ const UploadContent = () => {
   });
   const [tagInput, setTagInput] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [bannerImage, setBannerImage] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [contentType, setContentType] = useState('file'); // 'file' or 'youtube'
+  const [youtubeUrl, setYoutubeUrl] = useState('');
 
   // Fetch content for editing
   const { isLoading: isLoadingEdit } = useQuery(
@@ -39,6 +45,19 @@ const UploadContent = () => {
           subCategory: content.subCategory,
           tags: content.tags || []
         });
+        
+        // Set content type based on existing data
+        if (content.youtubeUrl) {
+          setContentType('youtube');
+          setYoutubeUrl(content.youtubeUrl);
+        } else {
+          setContentType('file');
+        }
+
+        // Set banner image if exists
+        if (content.bannerImage) {
+          setBannerPreview(content.bannerImage);
+        }
       }
     }
   );
@@ -46,7 +65,11 @@ const UploadContent = () => {
   const uploadMutation = useMutation(
     (data) => editId ? contentAPI.update(editId, data) : contentAPI.create(data),
     {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        // Clear validation errors
+        setValidationErrors({});
+        setUploadProgress(0);
+        
         // Invalidate and refetch queries
         queryClient.invalidateQueries(['contents']);
         queryClient.invalidateQueries(['teacher-dashboard']);
@@ -57,6 +80,7 @@ const UploadContent = () => {
         navigate('/');
       },
       onError: (error) => {
+        setUploadProgress(0);
         console.error('Upload error details:', {
           message: error.message,
           response: error.response?.data,
@@ -64,35 +88,73 @@ const UploadContent = () => {
           statusText: error.response?.statusText
         });
         
+        // Handle different types of errors
         if (error.response?.data?.errors) {
           // Validation errors
           const errors = error.response.data.errors;
-          console.log('Validation errors:', errors);
+          const errorMap = {};
           errors.forEach(err => {
+            errorMap[err.param] = err.msg;
             toast.error(`${err.param}: ${err.msg}`);
           });
+          setValidationErrors(errorMap);
         } else if (error.response?.data?.message) {
           // Server error message
-          console.log('Server error message:', error.response.data.message);
           toast.error(error.response.data.message);
+        } else if (error.response?.status === 413) {
+          toast.error('File quá lớn. Vui lòng chọn file nhỏ hơn 50MB');
+        } else if (error.response?.status === 415) {
+          toast.error('Loại file không được hỗ trợ');
         } else if (error.message) {
           // Network or other error
-          console.log('Network error:', error.message);
           toast.error(error.message);
         } else {
-          console.log('Unknown error');
           toast.error('Có lỗi xảy ra khi đăng tải');
         }
       }
     }
   );
 
-  const onDrop = useCallback((acceptedFiles) => {
+  const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
+    // Clear previous validation errors
+    setValidationErrors(prev => ({ ...prev, file: null }));
+    
+    if (rejectedFiles.length > 0) {
+      const rejection = rejectedFiles[0];
+      if (rejection.errors[0]?.code === 'file-too-large') {
+        setValidationErrors(prev => ({ ...prev, file: 'File quá lớn. Vui lòng chọn file nhỏ hơn 50MB' }));
+        toast.error('File quá lớn. Vui lòng chọn file nhỏ hơn 50MB');
+      } else if (rejection.errors[0]?.code === 'file-invalid-type') {
+        setValidationErrors(prev => ({ ...prev, file: 'Loại file không được hỗ trợ' }));
+        toast.error('Loại file không được hỗ trợ');
+      }
+      return;
+    }
+    
     const file = acceptedFiles[0];
     if (file) {
       setUploadedFile(file);
+      toast.success(`Đã chọn file: ${file.name}`);
     }
   }, []);
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate image file
+      if (!file.type.startsWith('image/')) {
+        toast.error('Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Ảnh banner quá lớn. Vui lòng chọn ảnh nhỏ hơn 10MB');
+        return;
+      }
+      setBannerImage(file);
+      setBannerPreview(URL.createObjectURL(file));
+      toast.success(`Đã chọn ảnh banner: ${file.name}`);
+    }
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -108,11 +170,18 @@ const UploadContent = () => {
       'text/plain': ['.txt']
     },
     maxFiles: 1,
-    maxSize: 50 * 1024 * 1024 // 50MB
+    maxSize: 50 * 1024 * 1024, // 50MB
+    multiple: false,
+    disabled: uploadMutation.isLoading
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Clear validation errors when user types
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: null }));
+    }
     
     if (name === 'category') {
       // Reset subCategory when category changes
@@ -157,24 +226,30 @@ const UploadContent = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    console.log('Form submission started');
-    console.log('Form data:', formData);
-    console.log('Uploaded file:', uploadedFile);
-    console.log('Edit ID:', editId);
-    console.log('User role:', user?.role);
+    // Clear previous validation errors
+    setValidationErrors({});
     
-    // Validation
+    // Client-side validation
+    const errors = {};
+    
     if (!formData.title.trim()) {
-      toast.error('Vui lòng nhập tiêu đề');
-      return;
+      errors.title = 'Vui lòng nhập tiêu đề';
     }
 
-    if (!uploadedFile && !editId) {
-      toast.error('Vui lòng chọn file để đăng tải');
-      return;
+    // Validate content based on type
+    if (contentType === 'file') {
+      if (!uploadedFile && !editId) {
+        errors.file = 'Vui lòng chọn file để đăng tải';
+      }
+    } else if (contentType === 'youtube') {
+      if (!youtubeUrl.trim()) {
+        errors.youtubeUrl = 'Vui lòng nhập link YouTube';
+      } else if (!validateYouTubeUrl(youtubeUrl)) {
+        errors.youtubeUrl = 'Link YouTube không hợp lệ';
+      }
     }
 
-    // Check student permissions (now with better default handling)
+    // Check student permissions
     if (isStudent()) {
       const allowedStudentSubCategories = [
         'san-pham-hoc-tap',
@@ -186,43 +261,98 @@ const UploadContent = () => {
       ];
       
       if (!allowedStudentSubCategories.includes(formData.subCategory)) {
-        toast.error('Vui lòng chọn loại nội dung phù hợp cho học sinh');
-        return;
+        errors.subCategory = 'Vui lòng chọn loại nội dung phù hợp cho học sinh';
       }
     }
 
-    // Additional validation
     if (!formData.category) {
-      toast.error('Vui lòng chọn danh mục');
-      return;
+      errors.category = 'Vui lòng chọn danh mục';
     }
 
     if (!formData.subCategory) {
-      toast.error('Vui lòng chọn thư mục con');
+      errors.subCategory = 'Vui lòng chọn thư mục con';
+    }
+
+    // If there are validation errors, show them and return
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      Object.values(errors).forEach(error => toast.error(error));
       return;
     }
 
+    // Show upload progress
+    setUploadProgress(10);
+    
     const submitData = new FormData();
     submitData.append('title', formData.title.trim());
     submitData.append('description', formData.description.trim());
     submitData.append('category', formData.category);
     submitData.append('subCategory', formData.subCategory);
     submitData.append('tags', formData.tags.join(','));
+    submitData.append('contentType', contentType);
     
-    if (uploadedFile) {
+    if (contentType === 'file' && uploadedFile) {
       submitData.append('file', uploadedFile);
+    } else if (contentType === 'youtube') {
+      submitData.append('youtubeUrl', youtubeUrl.trim());
     }
 
-    console.log('Submitting form data:', {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      category: formData.category,
-      subCategory: formData.subCategory,
-      tags: formData.tags,
-      hasFile: !!uploadedFile
-    });
+    // Append banner image if provided
+    if (bannerImage) {
+      submitData.append('bannerImage', bannerImage);
+    }
 
-    uploadMutation.mutate(submitData);
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev + 10;
+      });
+    }, 200);
+
+    uploadMutation.mutate(submitData, {
+      onSettled: () => {
+        clearInterval(progressInterval);
+        setUploadProgress(0);
+      }
+    });
+  };
+
+  // Helper functions
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileName) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const icons = {
+      pdf: '📄', ppt: '📊', pptx: '📊', doc: '📝', docx: '📝',
+      mp4: '🎥', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', txt: '📄'
+    };
+    return icons[ext] || '📁';
+  };
+
+  // YouTube URL validation and extraction
+  const validateYouTubeUrl = (url) => {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    return youtubeRegex.test(url);
+  };
+
+  const extractYouTubeId = (url) => {
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const getYouTubeThumbnail = (url) => {
+    const videoId = extractYouTubeId(url);
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
   };
 
   const getSubCategories = (category) => {
@@ -232,6 +362,7 @@ const UploadContent = () => {
         { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
         { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
         { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
+        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
         { value: 'video', label: 'Video' },
         { value: 'hinh-anh', label: 'Hình ảnh' },
         { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
@@ -241,6 +372,7 @@ const UploadContent = () => {
         { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
         { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
         { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
+        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
         { value: 'video', label: 'Video' },
         { value: 'hinh-anh', label: 'Hình ảnh' },
         { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
@@ -250,6 +382,7 @@ const UploadContent = () => {
         { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
         { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
         { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
+        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
         { value: 'video', label: 'Video' },
         { value: 'hinh-anh', label: 'Hình ảnh' },
         { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
@@ -291,25 +424,86 @@ const UploadContent = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* File Upload */}
+            {/* Content Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                File tài liệu {!editId && '*'}
+                Loại nội dung {!editId && '*'}
               </label>
+              <div className="flex space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="file"
+                    checked={contentType === 'file'}
+                    onChange={(e) => {
+                      setContentType(e.target.value);
+                      setValidationErrors(prev => ({ ...prev, file: null, youtubeUrl: null }));
+                    }}
+                    disabled={uploadMutation.isLoading}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Upload file</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="youtube"
+                    checked={contentType === 'youtube'}
+                    onChange={(e) => {
+                      setContentType(e.target.value);
+                      setValidationErrors(prev => ({ ...prev, file: null, youtubeUrl: null }));
+                    }}
+                    disabled={uploadMutation.isLoading}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Link YouTube</span>
+                </label>
+              </div>
+            </div>
+
+            {/* File Upload */}
+            {contentType === 'file' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  File tài liệu {!editId && '*'}
+                </label>
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
+                  isDragActive 
+                    ? 'border-blue-500 bg-blue-50 scale-105' 
+                    : validationErrors.file
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <input {...getInputProps()} />
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                {isDragActive ? (
-                  <p className="text-blue-600">Thả file vào đây...</p>
+                {uploadMutation.isLoading ? (
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="mx-auto h-12 w-12 text-blue-500 mb-4 animate-spin" />
+                    <p className="text-blue-600 font-medium">Đang đăng tải...</p>
+                    {uploadProgress > 0 && (
+                      <div className="w-full max-w-xs mt-4">
+                        <div className="bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{uploadProgress}%</p>
+                      </div>
+                    )}
+                  </div>
+                ) : isDragActive ? (
+                  <div className="flex flex-col items-center">
+                    <Upload className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+                    <p className="text-blue-600 font-medium">Thả file vào đây...</p>
+                  </div>
                 ) : (
-                  <div>
+                  <div className="flex flex-col items-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-gray-600 mb-2">
-                      Kéo thả file vào đây, hoặc <span className="text-blue-600">chọn file</span>
+                      Kéo thả file vào đây, hoặc <span className="text-blue-600 font-medium">chọn file</span>
                     </p>
                     <p className="text-sm text-gray-500">
                       Hỗ trợ: PDF, PPT, DOC, MP4, JPG, PNG, TXT (Tối đa 50MB)
@@ -318,20 +512,30 @@ const UploadContent = () => {
                 )}
               </div>
               
+              {/* File validation error */}
+              {validationErrors.file && (
+                <div className="mt-2 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {validationErrors.file}
+                </div>
+              )}
+              
+              {/* Uploaded file info */}
               {uploadedFile && (
                 <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="text-sm text-green-800">{uploadedFile.name}</span>
-                      <span className="text-xs text-green-600 ml-2">
-                        ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
+                      <span className="text-2xl mr-3">{getFileIcon(uploadedFile.name)}</span>
+                      <div>
+                        <p className="text-sm font-medium text-green-800">{uploadedFile.name}</p>
+                        <p className="text-xs text-green-600">{formatFileSize(uploadedFile.size)}</p>
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setUploadedFile(null)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition-colors"
+                      disabled={uploadMutation.isLoading}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -339,6 +543,81 @@ const UploadContent = () => {
                 </div>
               )}
             </div>
+            )}
+
+            {/* YouTube URL Input */}
+            {contentType === 'youtube' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Link YouTube {!editId && '*'}
+                </label>
+                <div className="space-y-4">
+                  <input
+                    type="url"
+                    value={youtubeUrl}
+                    onChange={(e) => {
+                      setYoutubeUrl(e.target.value);
+                      if (validationErrors.youtubeUrl) {
+                        setValidationErrors(prev => ({ ...prev, youtubeUrl: null }));
+                      }
+                    }}
+                    disabled={uploadMutation.isLoading}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                      validationErrors.youtubeUrl 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  />
+                  
+                  {/* YouTube validation error */}
+                  {validationErrors.youtubeUrl && (
+                    <div className="flex items-center text-red-600 text-sm">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {validationErrors.youtubeUrl}
+                    </div>
+                  )}
+                  
+                  {/* YouTube preview */}
+                  {youtubeUrl && validateYouTubeUrl(youtubeUrl) && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-start space-x-4">
+                        <img
+                          src={getYouTubeThumbnail(youtubeUrl)}
+                          alt="YouTube thumbnail"
+                          className="w-32 h-20 object-cover rounded"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/128x80?text=YouTube';
+                          }}
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-red-800">YouTube Video</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            Video ID: {extractYouTubeId(youtubeUrl)}
+                          </p>
+                          <a
+                            href={youtubeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-red-600 hover:text-red-800 underline mt-1 inline-block"
+                          >
+                            Xem video trên YouTube
+                          </a>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setYoutubeUrl('')}
+                          className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition-colors"
+                          disabled={uploadMutation.isLoading}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -352,9 +631,20 @@ const UploadContent = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={uploadMutation.isLoading}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  validationErrors.title 
+                    ? 'border-red-300 bg-red-50' 
+                    : 'border-gray-300'
+                } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 placeholder="Nhập tiêu đề tài liệu"
               />
+              {validationErrors.title && (
+                <div className="mt-1 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {validationErrors.title}
+                </div>
+              )}
             </div>
 
             {/* Description */}
@@ -368,9 +658,72 @@ const UploadContent = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={uploadMutation.isLoading}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  'border-gray-300'
+                } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 placeholder="Nhập mô tả tài liệu (không bắt buộc)"
               />
+            </div>
+
+            {/* Banner Image */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ảnh Banner (tùy chọn)
+              </label>
+              <div className="space-y-4">
+                {bannerPreview && !bannerImage && (
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2">Banner hiện tại:</p>
+                    <img 
+                      src={bannerPreview.startsWith('http') ? bannerPreview : `http://localhost:5000${bannerPreview}`} 
+                      alt="Current banner" 
+                      className="w-full h-48 object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                {bannerPreview && bannerImage && (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-gray-600 mb-2">Banner mới (sẽ thay thế banner cũ):</p>
+                    <img 
+                      src={bannerPreview} 
+                      alt="New banner preview" 
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+                <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <ImageIcon className="h-5 w-5 mr-2 text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    {bannerImage ? bannerImage.name : 'Chọn ảnh banner (JPG, PNG, WEBP - Tối đa 10MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    onChange={handleBannerChange}
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                    disabled={uploadMutation.isLoading}
+                  />
+                </label>
+                {bannerImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBannerImage(null);
+                      setBannerPreview(null);
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800 flex items-center"
+                    disabled={uploadMutation.isLoading}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Xóa ảnh banner
+                  </button>
+                )}
+                <p className="text-xs text-gray-500">Kích thước khuyến nghị: 1920x1080px. Tối đa 10MB.</p>
+              </div>
             </div>
 
             {/* Category and SubCategory */}
@@ -385,13 +738,24 @@ const UploadContent = () => {
                   value={formData.category}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={uploadMutation.isLoading}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    validationErrors.category 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300'
+                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <option value="lich-su-10">Lịch sử 10</option>
                   <option value="lich-su-11">Lịch sử 11</option>
                   <option value="lich-su-12">Lịch sử 12</option>
                   <option value="lich-su-dia-phuong">Lịch sử địa phương</option>
                 </select>
+                {validationErrors.category && (
+                  <div className="mt-1 flex items-center text-red-600 text-sm">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {validationErrors.category}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -404,7 +768,12 @@ const UploadContent = () => {
                   value={formData.subCategory}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={uploadMutation.isLoading}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    validationErrors.subCategory 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300'
+                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {getSubCategories(formData.category).map((sub) => (
                     <option key={sub.value} value={sub.value}>
@@ -412,6 +781,12 @@ const UploadContent = () => {
                     </option>
                   ))}
                 </select>
+                {validationErrors.subCategory && (
+                  <div className="mt-1 flex items-center text-red-600 text-sm">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {validationErrors.subCategory}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -475,22 +850,26 @@ const UploadContent = () => {
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                disabled={uploadMutation.isLoading}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Hủy
               </button>
-                              <button
-                  type="submit"
-                  disabled={uploadMutation.isLoading}
-                  className="px-6 py-2 bg-amber-700 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50"
-                >
+              <button
+                type="submit"
+                disabled={uploadMutation.isLoading}
+                className="px-6 py-2 bg-amber-700 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+              >
                 {uploadMutation.isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <>
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
                     {editId ? 'Đang cập nhật...' : 'Đang đăng tải...'}
-                  </div>
+                  </>
                 ) : (
-                  editId ? 'Cập nhật' : 'Đăng tải'
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {editId ? 'Cập nhật' : 'Đăng tải'}
+                  </>
                 )}
               </button>
             </div>

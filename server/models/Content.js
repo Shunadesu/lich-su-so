@@ -21,8 +21,10 @@ const contentSchema = new mongoose.Schema({
     required: [true, 'Thư mục con là bắt buộc'],
     enum: [
       'bai-giang-dien-tu',
+      'sach-dien-tu',
       'ke-hoach-bai-day', 
       'tu-lieu-lich-su-goc',
+      'tu-lieu-dien-tu',
       'video',
       'hinh-anh',
       'bai-kiem-tra',
@@ -35,22 +37,56 @@ const contentSchema = new mongoose.Schema({
       'du-an-hoc-tap'
     ]
   },
+  contentType: {
+    type: String,
+    required: [true, 'Loại nội dung là bắt buộc'],
+    enum: ['file', 'youtube'],
+    default: 'file'
+  },
   fileType: {
     type: String,
-    required: [true, 'Loại file là bắt buộc'],
+    required: function() {
+      return this.contentType === 'file';
+    },
     enum: ['pdf', 'ppt', 'doc', 'mp4', 'jpg', 'png', 'txt', 'other']
   },
   fileUrl: {
     type: String,
-    required: [true, 'Đường dẫn file là bắt buộc']
+    required: function() {
+      return this.contentType === 'file';
+    }
   },
   fileName: {
     type: String,
-    required: [true, 'Tên file là bắt buộc']
+    required: function() {
+      return this.contentType === 'file';
+    }
   },
   fileSize: {
     type: Number,
     required: false
+  },
+  youtubeUrl: {
+    type: String,
+    required: function() {
+      return this.contentType === 'youtube';
+    },
+    validate: {
+      validator: function(v) {
+        if (this.contentType === 'youtube') {
+          const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+          return youtubeRegex.test(v);
+        }
+        return true;
+      },
+      message: 'Link YouTube không hợp lệ'
+    }
+  },
+  youtubeId: {
+    type: String,
+    required: function() {
+      return this.contentType === 'youtube';
+    }
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -85,14 +121,32 @@ const contentSchema = new mongoose.Schema({
   approvedAt: {
     type: Date,
     required: false
+  },
+  bannerImage: {
+    type: String,
+    required: false
   }
 }, {
   timestamps: true
+});
+
+// Pre-save middleware to extract YouTube ID
+contentSchema.pre('save', function(next) {
+  if (this.contentType === 'youtube' && this.youtubeUrl) {
+    // Extract YouTube ID from URL
+    const match = this.youtubeUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    if (match) {
+      this.youtubeId = match[1];
+    }
+  }
+  next();
 });
 
 // Index for better search performance
 contentSchema.index({ category: 1, subCategory: 1 });
 contentSchema.index({ title: 'text', description: 'text', tags: 'text' });
 contentSchema.index({ author: 1, createdAt: -1 });
+contentSchema.index({ contentType: 1 });
+contentSchema.index({ youtubeId: 1 });
 
 module.exports = mongoose.model('Content', contentSchema); 

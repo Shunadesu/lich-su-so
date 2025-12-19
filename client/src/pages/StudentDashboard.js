@@ -337,9 +337,14 @@ const StudentDashboard = () => {
                           )}
                         </div>
                         
-                        <p className="text-sm text-gray-600 mb-2">
-                          {content.description || 'Không có mô tả'}
-                        </p>
+                        {content.description ? (
+                          <div 
+                            className="text-sm text-gray-600 mb-2"
+                            dangerouslySetInnerHTML={{ __html: content.description }}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-600 mb-2">Không có mô tả</p>
+                        )}
                         
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center" title="Loại nội dung">

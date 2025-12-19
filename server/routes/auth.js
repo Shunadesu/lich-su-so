@@ -25,10 +25,7 @@ router.post('/register', [
     .withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
   body('fullName')
     .notEmpty()
-    .withMessage('Họ tên là bắt buộc'),
-  body('role')
-    .isIn(['teacher', 'student'])
-    .withMessage('Vai trò không hợp lệ')
+    .withMessage('Họ tên là bắt buộc')
 ], async (req, res) => {
   try {
     // Check validation errors
@@ -40,7 +37,10 @@ router.post('/register', [
       });
     }
 
-    const { phone, password, fullName, role, email, school, grade } = req.body;
+    const { phone, password, fullName, email, school, grade } = req.body;
+    
+    // Public registration only allows student role
+    const role = 'student';
 
     // Check if user already exists
     const existingUser = await User.findOne({ phone });

@@ -283,9 +283,10 @@ const ContentApproval = () => {
                             {content.title}
                           </h3>
                           {content.description && (
-                            <p className="text-gray-600 mb-3 line-clamp-2">
-                              {content.description}
-                            </p>
+                            <div 
+                              className="text-gray-600 mb-3 line-clamp-2"
+                              dangerouslySetInnerHTML={{ __html: content.description }}
+                            />
                           )}
                           
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">

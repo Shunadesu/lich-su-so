@@ -12,7 +12,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
-    role: 'student',
+    role: 'student', // Mặc định là học sinh, không cho phép thay đổi
     grade: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -169,31 +169,8 @@ const Register = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Vai trò *
-              </label>
-              <div className="mt-1">
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className={`appearance-none block w-full px-3 py-2 border ${
-                    errors.role ? 'border-red-300' : 'border-gray-300'
-                  } rounded-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm`}
-                >
-                  <option value="student">Học sinh</option>
-                  <option value="teacher">Giáo viên</option>
-                </select>
-                {errors.role && (
-                  <p className="mt-2 text-sm text-red-600">{errors.role}</p>
-                )}
-                <p className="mt-1 text-sm text-gray-500">
-                  Chọn vai trò phù hợp với bạn. Giáo viên sẽ có quyền quản lý hệ thống.
-                </p>
-              </div>
-            </div>
+            {/* Role is fixed as student - hidden field */}
+            <input type="hidden" name="role" value="student" />
 
     
             <div>

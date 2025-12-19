@@ -356,7 +356,10 @@ const AdminPanel = () => {
                                 {content.title}
                               </h4>
                               {content.description && (
-                                <p className="text-gray-600 mb-2">{content.description}</p>
+                                <div 
+                                  className="text-gray-600 mb-2"
+                                  dangerouslySetInnerHTML={{ __html: content.description }}
+                                />
                               )}
                               <div className="flex items-center space-x-4 text-sm text-gray-500">
                                 <span>Tác giả: {content.author?.fullName}</span>

@@ -3,28 +3,37 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
-const contentRoutes = require('./routes/content');
-const userRoutes = require('./routes/users');
+const authRoutes = require(path.join(__dirname, 'routes', 'auth.js'));
+const contentRoutes = require(path.join(__dirname, 'routes', 'content.js'));
+const userRoutes = require(path.join(__dirname, 'routes', 'users.js'));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS Configuration for Render deployment
+// CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // In production, only allow specific origins
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
       'http://localhost:3000',
+      'http://localhost:1912', // Admin panel
+      'http://localhost:1922', // Client
       'https://lich-su-so.onrender.com',
       'https://lich-su-so-client.onrender.com',
       'https://lich-su-so.vercel.app',
       'https://lich-su-so.netlify.app',
-      'https://lich-su-so-zuna.vercel.app', // Thêm domain frontend mới
+      'https://lich-su-so-zuna.vercel.app',
       'https://du-lieu-lich-su-so.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
@@ -37,7 +46,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 86400 // 24 hours

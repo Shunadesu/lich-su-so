@@ -23,7 +23,7 @@ import {
   Award
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
-import { contentAPI, userAPI } from '../services/api';
+import { contentAPI, userAPI, getFileUrl } from '../services/api';
 import StudentFeatures from '../components/StudentFeatures';
 
 const Home = () => {
@@ -60,74 +60,20 @@ const Home = () => {
     }
   ];
 
-  // Default activities for fallback
-  const defaultActivities = [
-    {
-      type: 'upload',
-      title: 'Bài giảng mới về Cách mạng tháng 8',
-      author: 'Cô Nguyễn Thị Mai',
-      time: '2 giờ trước',
-      category: 'Lịch sử 12'
-    },
-    {
-      type: 'download',
-      title: 'Tư liệu về Đồng Tháp xưa',
-      author: 'Thầy Trần Văn Nam',
-      time: '4 giờ trước',
-      category: 'Lịch sử địa phương'
-    },
-    {
-      type: 'upload',
-      title: 'Video tư liệu về chiến dịch Điện Biên Phủ',
-      author: 'Cô Lê Thị Hoa',
-      time: '6 giờ trước',
-      category: 'Lịch sử 12'
-    }
-  ];
-  
-  // Check if any teachers exist (only if user is authenticated)
+  // Check if any teachers exist (only if user is authenticated and is a teacher)
   const { data: teachers } = useQuery(
     ['teachers-count'],
     () => userAPI.getAll({ role: 'teacher' }),
     {
       refetchOnWindowFocus: false,
       retry: false,
-      enabled: !!user // Only run query if user is authenticated
+      enabled: !!user && user?.role === 'teacher' // Only run query if user is authenticated AND is a teacher
     }
   );
 
   const hasTeachers = teachers?.data && teachers.data.length > 0;
   const isTeacher = user?.role === 'teacher';
 
-  // Use React Query for recent activities
-  const { data: recentActivitiesData, isLoading: activitiesLoading, error: activitiesError } = useQuery(
-    ['recent-activities'],
-    async () => {
-      const response = await contentAPI.getRecentActivities({ limit: 6 });
-      return response.data.data;
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      retry: (failureCount, error) => {
-        // Don't retry on 429 (rate limit) errors
-        if (error?.response?.status === 429) {
-          return false;
-        }
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      onError: (error) => {
-        console.error('Error fetching recent activities:', error);
-        if (error?.response?.status === 429) {
-          console.warn('Rate limited - using fallback data');
-        }
-      }
-    }
-  );
-
-  // Use fallback data if API fails
-  const recentActivities = recentActivitiesData || defaultActivities;
 
   const categories = [
     {
@@ -139,6 +85,7 @@ const Home = () => {
       subCategories: [
         'Chuyên đề học tập',
         'Bài giảng điện tử',
+        'Sách điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
         'Video',
@@ -156,6 +103,7 @@ const Home = () => {
       subCategories: [
         'Chuyên đề học tập',
         'Bài giảng điện tử',
+        'Sách điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
         'Video',
@@ -173,6 +121,7 @@ const Home = () => {
       subCategories: [
         'Chuyên đề học tập',
         'Bài giảng điện tử',
+        'Sách điện tử',
         'Kế hoạch bài dạy',
         'Tư liệu lịch sử gốc',
         'Video',
@@ -495,166 +444,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Recent Activities Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Hoạt động gần đây
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Theo dõi những hoạt động mới nhất trong cộng đồng học tập
-            </p>
-          </div>
-          
-          <div className="max-w-5xl mx-auto">
-            {activitiesLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {[1,2,3,4].map((index) => (
-                  <div key={index} className="bg-white rounded-2xl p-6 shadow-lg animate-pulse">
-                    <div className="flex items-center mb-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-20"></div>
-                      </div>
-                    </div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                    <div className="flex justify-between">
-                      <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      <div className="h-6 bg-gray-200 rounded w-20"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : Array.isArray(recentActivities) && recentActivities.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {recentActivities.map((activity, index) => {
-                  
-                  // Format time from API data
-                  const formatTime = (timeString) => {
-                    if (!timeString) return 'Vừa xong';
-                    
-                    const time = new Date(timeString);
-                    const now = new Date();
-                    const diffInHours = Math.floor((now - time) / (1000 * 60 * 60));
-                    
-                    if (diffInHours < 1) return 'Vừa xong';
-                    if (diffInHours < 24) return `${diffInHours} giờ trước`;
-                    
-                    const diffInDays = Math.floor(diffInHours / 24);
-                    if (diffInDays < 7) return `${diffInDays} ngày trước`;
-                    
-                    return time.toLocaleDateString('vi-VN');
-                  };
-
-                  return (
-                    <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="flex items-center mb-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 ${
-                          activity.type === 'upload' ? 'bg-green-100' : 'bg-blue-100'
-                        }`}>
-                          {activity.type === 'upload' ? (
-                            <FileText className="h-6 w-6 text-green-600" />
-                          ) : (
-                            <Download className="h-6 w-6 text-blue-600" />
-                          )}
-                        </div>
-                        <div>
-                          <div className={`text-sm font-semibold ${
-                            activity.type === 'upload' ? 'text-green-600' : 'text-blue-600'
-                          }`}>
-                            {activity.type === 'upload' ? 'Đăng tải mới' : 'Tải về'}
-                          </div>
-                          <div className="text-xs text-gray-500">{formatTime(activity.time)}</div>
-                        </div>
-                      </div>
-                      <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                        {activity.title}
-                      </h4>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <span>{activity.author}</span>
-                        <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs">
-                          {activity.category}
-                        </span>
-                      </div>
-                      {activity.downloadCount && (
-                        <div className="mt-3 flex items-center text-xs text-gray-500">
-                          <Download className="h-3 w-3 mr-1" />
-                          {activity.downloadCount} lượt tải
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : activitiesError ? (
-              <div className="text-center py-16">
-                <div className="text-8xl mb-6">⚠️</div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  {activitiesError?.response?.status === 429 
-                    ? 'Tạm thời không thể tải dữ liệu' 
-                    : 'Có lỗi xảy ra'
-                  }
-                </h3>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  {activitiesError?.response?.status === 429 
-                    ? 'Hệ thống đang bận, vui lòng thử lại sau vài phút.'
-                    : 'Không thể tải thông tin hoạt động gần đây. Vui lòng thử lại.'
-                  }
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    to="/content"
-                    className="inline-flex items-center bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors"
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Khám phá tài liệu
-                  </Link>
-                  {user && (
-                    <Link
-                      to="/upload"
-                      className="inline-flex items-center border border-amber-300 text-amber-700 px-6 py-3 rounded-lg hover:bg-amber-50 transition-colors"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Đăng tải tài liệu
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="text-8xl mb-6">📚</div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  Chưa có hoạt động nào
-                </h3>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Hệ thống chưa có hoạt động nào được ghi nhận. Hãy là người đầu tiên đăng tải tài liệu!
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    to="/content"
-                    className="inline-flex items-center bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors"
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Khám phá tài liệu
-                  </Link>
-                  {user && (
-                    <Link
-                      to="/upload"
-                      className="inline-flex items-center border border-amber-300 text-amber-700 px-6 py-3 rounded-lg hover:bg-amber-50 transition-colors"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Đăng tải tài liệu
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-amber-950 to-orange-950 text-white py-20">
