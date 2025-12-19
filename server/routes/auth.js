@@ -96,7 +96,18 @@ router.post('/register', [
 // @access  Public
 router.post('/login', [
   body('phone')
-    .isMobilePhone('vi-VN')
+    .custom((value) => {
+      // Allow admin phone or valid Vietnamese phone number
+      if (value === '0123456789') {
+        return true;
+      }
+      // Check if it's a valid Vietnamese phone number
+      const phoneRegex = /^[0-9]{10,11}$/;
+      if (!phoneRegex.test(value)) {
+        throw new Error('Số điện thoại không hợp lệ');
+      }
+      return true;
+    })
     .withMessage('Số điện thoại không hợp lệ'),
   body('password')
     .notEmpty()

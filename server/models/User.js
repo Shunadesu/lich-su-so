@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email không hợp lệ']
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,6})+$/, 'Email không hợp lệ'] // Updated to support .online and other TLDs
   },
   school: {
     type: String,
