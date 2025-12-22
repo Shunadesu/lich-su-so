@@ -70,6 +70,20 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
 };
 
+// Taxonomy API
+export const taxonomyAPI = {
+  getTree: () => api.get('/taxonomy'),
+  createGrade: (data) => api.post('/taxonomy/grades', data),
+  updateGrade: (id, data) => api.put(`/taxonomy/grades/${id}`, data),
+  deleteGrade: (id) => api.delete(`/taxonomy/grades/${id}`),
+  createTopic: (data) => api.post('/taxonomy/topics', data),
+  updateTopic: (id, data) => api.put(`/taxonomy/topics/${id}`, data),
+  deleteTopic: (id) => api.delete(`/taxonomy/topics/${id}`),
+  createSection: (data) => api.post('/taxonomy/sections', data),
+  updateSection: (id, data) => api.put(`/taxonomy/sections/${id}`, data),
+  deleteSection: (id) => api.delete(`/taxonomy/sections/${id}`),
+};
+
 // Content API
 export const contentAPI = {
   getAll: (params) => api.get('/content', { params }),

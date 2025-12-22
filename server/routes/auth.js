@@ -96,24 +96,27 @@ router.post('/register', [
 // @access  Public
 router.post('/login', [
   body('phone')
+    .notEmpty()
+    .withMessage('Số điện thoại là bắt buộc')
     .custom((value) => {
-      // Allow admin phone or valid Vietnamese phone number
+      // Allow admin phone
       if (value === '0123456789') {
         return true;
       }
-      // Check if it's a valid Vietnamese phone number
-      const phoneRegex = /^[0-9]{10,11}$/;
+      // Check if it's a valid Vietnamese phone number (10-11 digits starting with 0)
+      const phoneRegex = /^0[3|5|7|8|9][0-9]{8}$/;
       if (!phoneRegex.test(value)) {
         throw new Error('Số điện thoại không hợp lệ');
       }
       return true;
-    })
-    .withMessage('Số điện thoại không hợp lệ'),
+    }),
   body('password')
     .notEmpty()
     .withMessage('Mật khẩu là bắt buộc')
 ], async (req, res) => {
   try {
+    const { phone, password } = req.body;
+
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -122,8 +125,6 @@ router.post('/login', [
         errors: errors.array() 
       });
     }
-
-    const { phone, password } = req.body;
 
     // Find user by phone
     const user = await User.findOne({ phone });

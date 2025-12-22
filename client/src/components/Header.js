@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, User, LogOut, Upload, Users, BarChart3, Menu, X, CheckCircle } from 'lucide-react';
+import { useQuery } from 'react-query';
+import { BookOpen, User, LogOut, Upload, Users, BarChart3, Menu, X, CheckCircle, ChevronDown } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import { taxonomyAPI } from '../services/api';
 
 const Header = () => {
   const { user, isAuthenticated, logout, isTeacher } = useAuthStore();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Taxonomy for dropdown
+  const { data: taxonomyData } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false }
+  );
+  const grades = taxonomyData?.data?.data || [];
+
+  const gradeRoute = (slug) => {
+    const mapping = {
+      'lop-10': '/lich-su-10',
+      'lop-11': '/lich-su-11',
+      'lop-12': '/lich-su-12',
+    };
+    return mapping[slug] || '/content';
+  };
 
   const handleLogout = () => {
     logout();
@@ -45,30 +64,41 @@ const Header = () => {
             >
               Trang chủ
             </Link>
-            <Link 
-              to="/lich-su-10" 
-              className="hover:text-amber-100 transition-colors font-medium"
-            >
-              Lịch sử 10
-            </Link>
-            <Link 
-              to="/lich-su-11" 
-              className="hover:text-amber-100 transition-colors font-medium"
-            >
-              Lịch sử 11
-            </Link>
-            <Link 
-              to="/lich-su-12" 
-              className="hover:text-amber-100 transition-colors font-medium"
-            >
-              Lịch sử 12
-            </Link>
-            <Link 
-              to="/lich-su-dia-phuong" 
-              className="hover:text-amber-100 transition-colors font-medium"
-            >
-              Lịch sử địa phương
-            </Link>
+
+            {grades.length > 0 ? (
+              grades.map((g) => (
+                <div key={g._id} className="relative group">
+                  <Link 
+                    to={gradeRoute(g.slug)}
+                    className="hover:text-amber-100 transition-colors font-medium inline-flex items-center"
+                  >
+                    {`Lịch sử ${g.name}`} <ChevronDown className="h-4 w-4 ml-1" />
+                  </Link>
+                  {g.topics?.length > 0 && (
+                    <div className="absolute left-0 mt-2 w-56 bg-white text-amber-900 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                      <div className="py-2">
+                        {g.topics.map((t) => (
+                          <Link
+                            key={t._id}
+                            to={`${gradeRoute(g.slug)}?topic=${t._id}`}
+                            className="block px-4 py-2 text-sm hover:bg-amber-50"
+                          >
+                            {t.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <>
+                <Link to="/lich-su-10" className="hover:text-amber-100 transition-colors font-medium">Lịch sử 10</Link>
+                <Link to="/lich-su-11" className="hover:text-amber-100 transition-colors font-medium">Lịch sử 11</Link>
+                <Link to="/lich-su-12" className="hover:text-amber-100 transition-colors font-medium">Lịch sử 12</Link>
+              </>
+            )}
+
           </nav>
 
           {/* Desktop User Menu */}

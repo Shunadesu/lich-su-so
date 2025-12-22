@@ -15,7 +15,7 @@ import {
   Youtube,
   Loader,
 } from 'lucide-react';
-import { contentAPI, getFileUrl } from '../services/api';
+import { contentAPI, taxonomyAPI, getFileUrl } from '../services/api';
 import toast from 'react-hot-toast';
 
 const EditContent = () => {
@@ -41,6 +41,25 @@ const EditContent = () => {
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [gradeId, setGradeId] = useState('');
+  const [topicId, setTopicId] = useState('');
+  const [sectionId, setSectionId] = useState('');
+
+  const { data: taxonomyData, isLoading: isLoadingTaxonomy } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const grades = taxonomyData?.data?.data || [];
+  const selectedGrade = grades.find((g) => g._id === gradeId);
+  const topics = selectedGrade?.topics || [];
+  const selectedTopic = topics.find((t) => t._id === topicId);
+  const sections = selectedTopic?.sections || [];
+
   // Fetch content data
   const { data, isLoading, error } = useQuery(
     ['content', id],
@@ -63,7 +82,7 @@ const EditContent = () => {
         category: content.category || '',
         subCategory: content.subCategory || '',
         contentType: content.contentType || 'file',
-        youtubeUrl: content.youtubeUrl || '',
+        youtubeUrl: content.contentType === 'youtube' ? (content.youtubeUrl || '') : '',
         tags: content.tags ? (Array.isArray(content.tags) ? content.tags.join(', ') : content.tags) : '',
         file: null,
         bannerImage: null,
@@ -71,21 +90,32 @@ const EditContent = () => {
       
       setFormData(newFormData);
       
-      if (content.contentType === 'file' && content.fileUrl) {
-        const fileUrl = getFileUrl(content.fileUrl);
-        setCurrentFile({
-          url: fileUrl,
-          name: content.fileName || 'File hiện tại',
-          type: content.fileType || 'other',
-        });
-        // Preview image if it's an image
-        if (['jpg', 'jpeg', 'png'].includes(content.fileType?.toLowerCase())) {
-          setPreviewUrl(fileUrl);
+        if (content.contentType === 'file' && content.fileUrl) {
+          const fileUrl = getFileUrl(content.fileUrl);
+          setCurrentFile({
+            url: fileUrl,
+            name: content.fileName || 'File hiện tại',
+            type: content.fileType || 'other',
+          });
+          // Preview image if it's an image
+          if (['jpg', 'jpeg', 'png'].includes(content.fileType?.toLowerCase())) {
+            setPreviewUrl(fileUrl);
+          }
+        } else if (content.contentType === 'youtube' && content.youtubeUrl) {
+          setCurrentFile(null);
+          setPreviewUrl(null);
+          // Ensure form state reflects YouTube mode and URL
+          setFormData((prev) => ({
+            ...prev,
+            contentType: 'youtube',
+            youtubeUrl: content.youtubeUrl,
+          }));
         }
-      } else if (content.contentType === 'youtube' && content.youtubeUrl) {
-        setCurrentFile(null);
-        setPreviewUrl(null);
-      }
+
+      // Set taxonomy selections if available
+      if (content.grade?._id) setGradeId(content.grade._id);
+      if (content.topic?._id) setTopicId(content.topic._id);
+      if (content.section?._id) setSectionId(content.section._id);
 
       // Set banner image
       if (content.bannerImage) {
@@ -116,56 +146,15 @@ const EditContent = () => {
     }
   );
 
-  const categories = [
-    { value: 'lich-su-10', label: 'Lịch sử 10' },
-    { value: 'lich-su-11', label: 'Lịch sử 11' },
-    { value: 'lich-su-12', label: 'Lịch sử 12' },
-    { value: 'lich-su-dia-phuong', label: 'Lịch sử địa phương' },
-  ];
+  const handleGradeChange = (e) => {
+    setGradeId(e.target.value);
+    setTopicId('');
+    setSectionId('');
+  };
 
-  const subCategories = {
-    'lich-su-10': [
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'sach-dien-tu', label: 'Sách điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
-    ],
-    'lich-su-11': [
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'sach-dien-tu', label: 'Sách điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
-    ],
-    'lich-su-12': [
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'sach-dien-tu', label: 'Sách điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
-      { value: 'on-thi-tnthpt', label: 'Ôn thi TNTHPT' },
-    ],
-    'lich-su-dia-phuong': [
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'san-pham-hoc-tap', label: 'Sản phẩm học tập' },
-      { value: 'tai-lieu-hoc-tap', label: 'Tài liệu học tập' },
-      { value: 'hinh-anh-hoc-tap', label: 'Hình ảnh học tập' },
-      { value: 'video-hoc-tap', label: 'Video học tập' },
-      { value: 'bai-tap-hoc-sinh', label: 'Bài tập học sinh' },
-      { value: 'du-an-hoc-tap', label: 'Dự án học tập' },
-    ],
+  const handleTopicChange = (e) => {
+    setTopicId(e.target.value);
+    setSectionId('');
   };
 
   const handleFileChange = (e) => {
@@ -206,11 +195,18 @@ const EditContent = () => {
     setIsSubmitting(true);
 
     try {
+      if (!gradeId || !topicId || !sectionId) {
+        toast.error('Vui lòng chọn đầy đủ Lớp, Chủ đề, Mục');
+        setIsSubmitting(false);
+        return;
+      }
+
       const submitData = new FormData();
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
-      submitData.append('category', formData.category);
-      submitData.append('subCategory', formData.subCategory);
+      submitData.append('gradeId', gradeId);
+      submitData.append('topicId', topicId);
+      submitData.append('sectionId', sectionId);
       submitData.append('contentType', formData.contentType);
 
       if (formData.tags) {
@@ -315,7 +311,7 @@ const EditContent = () => {
           </label>
           <input
             type="text"
-            value={formData.title || ''}
+            value={formData.title || data?.data?.data?.title || ''}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -383,58 +379,66 @@ const EditContent = () => {
           </div>
         </div>
 
-        {/* Category */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Taxonomy: Grade / Topic / Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Danh mục <span className="text-red-500">*</span>
+              Lớp <span className="text-red-500">*</span>
             </label>
             <select
-              value={formData.category || ''}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  category: e.target.value,
-                  subCategory: '', // Reset subCategory when category changes
-                });
-              }}
+              value={gradeId}
+              onChange={handleGradeChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              disabled={isLoadingTaxonomy}
             >
-              <option value="">Chọn danh mục</option>
-              {categories.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
+              <option value="">Chọn lớp</option>
+              {grades.map((grade) => (
+                <option key={grade._id} value={grade._id}>
+                  {grade.name}
                 </option>
               ))}
             </select>
-            {!formData.category && data?.data?.data?.category && (
-              <p className="mt-1 text-xs text-gray-500">Danh mục hiện tại: {data.data.data.category}</p>
-            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thư mục con <span className="text-red-500">*</span>
+              Chủ đề <span className="text-red-500">*</span>
             </label>
             <select
-              value={formData.subCategory || ''}
-              onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
+              value={topicId}
+              onChange={handleTopicChange}
               required
-              disabled={!formData.category}
+              disabled={!gradeId || isLoadingTaxonomy}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             >
-              <option value="">Chọn thư mục con</option>
-              {formData.category &&
-                subCategories[formData.category]?.map((sub) => (
-                  <option key={sub.value} value={sub.value}>
-                    {sub.label}
-                  </option>
-                ))}
+              <option value="">Chọn chủ đề</option>
+              {topics.map((topic) => (
+                <option key={topic._id} value={topic._id}>
+                  {topic.name}
+                </option>
+              ))}
             </select>
-            {!formData.subCategory && data?.data?.data?.subCategory && (
-              <p className="mt-1 text-xs text-gray-500">Thư mục con hiện tại: {data.data.data.subCategory}</p>
-            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mục <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              required
+              disabled={!topicId || isLoadingTaxonomy}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            >
+              <option value="">Chọn mục</option>
+              {sections.map((section) => (
+                <option key={section._id} value={section._id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

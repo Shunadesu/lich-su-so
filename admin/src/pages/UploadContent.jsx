@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { Upload, X, Tag, AlertCircle, Loader2, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { contentAPI } from '../services/api';
+import { contentAPI, taxonomyAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const UploadContent = () => {
@@ -13,8 +13,9 @@ const UploadContent = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'lich-su-10',
-    subCategory: 'bai-giang-dien-tu',
+    gradeId: '',
+    topicId: '',
+    sectionId: '',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
@@ -25,6 +26,22 @@ const UploadContent = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [contentType, setContentType] = useState('file');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+
+  // Fetch taxonomy tree
+  const { data: taxonomyData, isLoading: isLoadingTaxonomy } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const grades = taxonomyData?.data?.data || [];
+  const selectedGrade = grades.find((g) => g._id === formData.gradeId);
+  const topics = selectedGrade?.topics || [];
+  const selectedTopic = topics.find((t) => t._id === formData.topicId);
+  const sections = selectedTopic?.sections || [];
 
   const uploadMutation = useMutation(
     (data) => contentAPI.create(data),
@@ -103,21 +120,31 @@ const UploadContent = () => {
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: null }));
     }
-    
-    if (name === 'category') {
-      const newSubCategories = getSubCategories(value);
-      const defaultSubCategory = newSubCategories.length > 0 ? newSubCategories[0].value : '';
+
+    // Reset dependent fields when changing parent
+    if (name === 'gradeId') {
       setFormData(prev => ({
         ...prev,
-        [name]: value,
-        subCategory: defaultSubCategory
+        gradeId: value,
+        topicId: '',
+        sectionId: ''
       }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      return;
     }
+
+    if (name === 'topicId') {
+      setFormData(prev => ({
+        ...prev,
+        topicId: value,
+        sectionId: ''
+      }));
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleAddTag = () => {
@@ -164,12 +191,16 @@ const UploadContent = () => {
       }
     }
 
-    if (!formData.category) {
-      errors.category = 'Vui lòng chọn danh mục';
+    if (!formData.gradeId) {
+      errors.gradeId = 'Vui lòng chọn lớp';
     }
 
-    if (!formData.subCategory) {
-      errors.subCategory = 'Vui lòng chọn thư mục con';
+    if (!formData.topicId) {
+      errors.topicId = 'Vui lòng chọn chủ đề';
+    }
+
+    if (!formData.sectionId) {
+      errors.sectionId = 'Vui lòng chọn mục';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -183,8 +214,9 @@ const UploadContent = () => {
     const submitData = new FormData();
     submitData.append('title', formData.title.trim());
     submitData.append('description', formData.description.trim());
-    submitData.append('category', formData.category);
-    submitData.append('subCategory', formData.subCategory);
+    submitData.append('gradeId', formData.gradeId);
+    submitData.append('topicId', formData.topicId);
+    submitData.append('sectionId', formData.sectionId);
     submitData.append('tags', formData.tags.join(','));
     submitData.append('contentType', contentType);
     
@@ -481,47 +513,91 @@ const UploadContent = () => {
               />
             </div>
 
-            {/* Category */}
+            {/* Grade */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Danh mục *
+                Lớp *
               </label>
               <select
-                name="category"
-                value={formData.category}
+                name="gradeId"
+                value={formData.gradeId}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-2 border rounded-lg ${
-                  validationErrors.category ? 'border-red-300' : 'border-gray-300'
+                  validationErrors.gradeId ? 'border-red-300' : 'border-gray-300'
                 }`}
-                disabled={uploadMutation.isLoading}
+                disabled={uploadMutation.isLoading || isLoadingTaxonomy}
               >
-                <option value="lich-su-10">Lịch sử 10</option>
-                <option value="lich-su-11">Lịch sử 11</option>
-                <option value="lich-su-12">Lịch sử 12</option>
-                <option value="lich-su-dia-phuong">Lịch sử địa phương</option>
-              </select>
-            </div>
-
-            {/* Sub Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Thư mục con *
-              </label>
-              <select
-                name="subCategory"
-                value={formData.subCategory}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg ${
-                  validationErrors.subCategory ? 'border-red-300' : 'border-gray-300'
-                }`}
-                disabled={uploadMutation.isLoading}
-              >
-                {getSubCategories(formData.category).map((sub) => (
-                  <option key={sub.value} value={sub.value}>
-                    {sub.label}
+                <option value="">Chọn lớp</option>
+                {grades.map((grade) => (
+                  <option key={grade._id} value={grade._id}>
+                    {grade.name}
                   </option>
                 ))}
               </select>
+              {validationErrors.gradeId && (
+                <div className="mt-2 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {validationErrors.gradeId}
+                </div>
+              )}
+            </div>
+
+            {/* Topic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Chủ đề *
+              </label>
+              <select
+                name="topicId"
+                value={formData.topicId}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2 border rounded-lg ${
+                  validationErrors.topicId ? 'border-red-300' : 'border-gray-300'
+                }`}
+                disabled={uploadMutation.isLoading || !formData.gradeId || isLoadingTaxonomy}
+              >
+                <option value="">Chọn chủ đề</option>
+                {topics.map((topic) => (
+                  <option key={topic._id} value={topic._id}>
+                    {topic.name}
+                  </option>
+                ))}
+              </select>
+              {validationErrors.topicId && (
+                <div className="mt-2 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {validationErrors.topicId}
+                </div>
+              )}
+            </div>
+
+            {/* Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mục *
+              </label>
+              <select
+                name="sectionId"
+                value={formData.sectionId}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2 border rounded-lg ${
+                  validationErrors.sectionId ? 'border-red-300' : 'border-gray-300'
+                }`}
+                disabled={uploadMutation.isLoading || !formData.topicId || isLoadingTaxonomy}
+              >
+                <option value="">Chọn mục</option>
+                {sections.map((section) => (
+                  <option key={section._id} value={section._id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+              {validationErrors.sectionId && (
+                <div className="mt-2 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {validationErrors.sectionId}
+                </div>
+              )}
             </div>
 
             {/* Banner Image */}

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, FileText, Tag, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react';
-import { contentAPI } from '../services/api';
+import { contentAPI, taxonomyAPI } from '../services/api';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -17,8 +17,9 @@ const UploadContent = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: isStudent() ? 'lich-su-dia-phuong' : 'lich-su-10',
-    subCategory: isStudent() ? 'san-pham-hoc-tap' : 'bai-giang-dien-tu',
+    gradeId: '',
+    topicId: '',
+    sectionId: '',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
@@ -30,6 +31,22 @@ const UploadContent = () => {
   const [contentType, setContentType] = useState('file'); // 'file' or 'youtube'
   const [youtubeUrl, setYoutubeUrl] = useState('');
 
+  // Fetch taxonomy tree
+  const { data: taxonomyData } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const grades = taxonomyData?.data?.data || [];
+  const selectedGrade = grades.find((g) => g._id === formData.gradeId);
+  const topics = selectedGrade?.topics || [];
+  const selectedTopic = topics.find((t) => t._id === formData.topicId);
+  const sections = selectedTopic?.sections || [];
+
   // Fetch content for editing
   const { isLoading: isLoadingEdit } = useQuery(
     ['content', editId],
@@ -38,13 +55,15 @@ const UploadContent = () => {
       enabled: !!editId,
       onSuccess: (data) => {
         const content = data.data;
-        setFormData({
+        setFormData((prev) => ({
+          ...prev,
           title: content.title,
           description: content.description || '',
-          category: content.category,
-          subCategory: content.subCategory,
+          gradeId: content.grade?._id || prev.gradeId,
+          topicId: content.topic?._id || prev.topicId,
+          sectionId: content.section?._id || prev.sectionId,
           tags: content.tags || []
-        });
+        }));
         
         // Set content type based on existing data
         if (content.youtubeUrl) {
@@ -183,27 +202,30 @@ const UploadContent = () => {
       setValidationErrors(prev => ({ ...prev, [name]: null }));
     }
     
-    if (name === 'category') {
-      // Reset subCategory when category changes
-      const newSubCategories = getSubCategories(value);
-      let defaultSubCategory = newSubCategories.length > 0 ? newSubCategories[0].value : '';
-      
-      // For students, prefer 'san-pham-hoc-tap' if available
-      if (isStudent() && newSubCategories.some(sub => sub.value === 'san-pham-hoc-tap')) {
-        defaultSubCategory = 'san-pham-hoc-tap';
-      }
-      
+    // Reset dependent taxonomy when parent changes
+    if (name === 'gradeId') {
       setFormData(prev => ({
         ...prev,
-        [name]: value,
-        subCategory: defaultSubCategory
+        gradeId: value,
+        topicId: '',
+        sectionId: ''
       }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      return;
     }
+
+    if (name === 'topicId') {
+      setFormData(prev => ({
+        ...prev,
+        topicId: value,
+        sectionId: ''
+      }));
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleAddTag = () => {
@@ -249,8 +271,20 @@ const UploadContent = () => {
       }
     }
 
-    // Check student permissions
-    if (isStudent()) {
+    // Validate taxonomy selection
+    if (!formData.gradeId) {
+      errors.gradeId = 'Vui lòng chọn lớp';
+    }
+    if (!formData.topicId) {
+      errors.topicId = 'Vui lòng chọn chủ đề';
+    }
+    if (!formData.sectionId) {
+      errors.sectionId = 'Vui lòng chọn mục';
+    }
+
+    // Check student permissions based on section slug
+    if (isStudent() && formData.sectionId && sections.length > 0) {
+      const selectedSection = sections.find(s => s._id === formData.sectionId);
       const allowedStudentSubCategories = [
         'san-pham-hoc-tap',
         'tai-lieu-hoc-tap',
@@ -260,17 +294,9 @@ const UploadContent = () => {
         'du-an-hoc-tap'
       ];
       
-      if (!allowedStudentSubCategories.includes(formData.subCategory)) {
-        errors.subCategory = 'Vui lòng chọn loại nội dung phù hợp cho học sinh';
+      if (selectedSection && !allowedStudentSubCategories.includes(selectedSection.slug)) {
+        errors.sectionId = 'Vui lòng chọn mục phù hợp cho học sinh (tài liệu/sản phẩm học tập, hình ảnh, video học tập, bài tập, dự án...)';
       }
-    }
-
-    if (!formData.category) {
-      errors.category = 'Vui lòng chọn danh mục';
-    }
-
-    if (!formData.subCategory) {
-      errors.subCategory = 'Vui lòng chọn thư mục con';
     }
 
     // If there are validation errors, show them and return
@@ -286,8 +312,9 @@ const UploadContent = () => {
     const submitData = new FormData();
     submitData.append('title', formData.title.trim());
     submitData.append('description', formData.description.trim());
-    submitData.append('category', formData.category);
-    submitData.append('subCategory', formData.subCategory);
+    submitData.append('gradeId', formData.gradeId);
+    submitData.append('topicId', formData.topicId);
+    submitData.append('sectionId', formData.sectionId);
     submitData.append('tags', formData.tags.join(','));
     submitData.append('contentType', contentType);
     
@@ -355,53 +382,7 @@ const UploadContent = () => {
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
   };
 
-  const getSubCategories = (category) => {
-    const subCategories = {
-      'lich-su-10': [
-        { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-        { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-        { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-        { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-        { value: 'video', label: 'Video' },
-        { value: 'hinh-anh', label: 'Hình ảnh' },
-        { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
-      ],
-      'lich-su-11': [
-        { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-        { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-        { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-        { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-        { value: 'video', label: 'Video' },
-        { value: 'hinh-anh', label: 'Hình ảnh' },
-        { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
-      ],
-      'lich-su-12': [
-        { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-        { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-        { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-        { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-        { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-        { value: 'video', label: 'Video' },
-        { value: 'hinh-anh', label: 'Hình ảnh' },
-        { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
-        { value: 'on-thi-tnthpt', label: 'Ôn thi TNTHPT' }
-      ],
-      'lich-su-dia-phuong': [
-        { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-        { value: 'video', label: 'Video' },
-        { value: 'hinh-anh', label: 'Hình ảnh' },
-        { value: 'san-pham-hoc-tap', label: 'Sản phẩm học tập' },
-        { value: 'tai-lieu-hoc-tap', label: 'Tài liệu học tập' },
-        { value: 'hinh-anh-hoc-tap', label: 'Hình ảnh học tập' },
-        { value: 'video-hoc-tap', label: 'Video học tập' },
-        { value: 'bai-tap-hoc-sinh', label: 'Bài tập học sinh' },
-        { value: 'du-an-hoc-tap', label: 'Dự án học tập' }
-      ]
-    };
-    return subCategories[category] || [];
-  };
+  // Removed legacy getSubCategories - taxonomy is now managed via API
 
   if (isLoadingEdit) {
     return (
@@ -726,65 +707,100 @@ const UploadContent = () => {
               </div>
             </div>
 
-            {/* Category and SubCategory */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Taxonomy Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                  Danh mục chính *
+                <label htmlFor="gradeId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Lớp *
                 </label>
                 <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
+                  id="gradeId"
+                  name="gradeId"
+                  value={formData.gradeId}
                   onChange={handleInputChange}
                   required
-                  disabled={uploadMutation.isLoading}
+                  disabled={uploadMutation.isLoading || !grades.length}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    validationErrors.category 
+                    validationErrors.gradeId 
                       ? 'border-red-300 bg-red-50' 
                       : 'border-gray-300'
                   } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <option value="lich-su-10">Lịch sử 10</option>
-                  <option value="lich-su-11">Lịch sử 11</option>
-                  <option value="lich-su-12">Lịch sử 12</option>
-                  <option value="lich-su-dia-phuong">Lịch sử địa phương</option>
+                  <option value="">Chọn lớp</option>
+                  {grades.map((grade) => (
+                    <option key={grade._id} value={grade._id}>
+                      {grade.name}
+                    </option>
+                  ))}
                 </select>
-                {validationErrors.category && (
+                {validationErrors.gradeId && (
                   <div className="mt-1 flex items-center text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4 mr-1" />
-                    {validationErrors.category}
+                    {validationErrors.gradeId}
                   </div>
                 )}
               </div>
 
               <div>
-                <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-2">
-                  Thư mục con *
+                <label htmlFor="topicId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Chủ đề *
                 </label>
                 <select
-                  id="subCategory"
-                  name="subCategory"
-                  value={formData.subCategory}
+                  id="topicId"
+                  name="topicId"
+                  value={formData.topicId}
                   onChange={handleInputChange}
                   required
-                  disabled={uploadMutation.isLoading}
+                  disabled={uploadMutation.isLoading || !formData.gradeId}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    validationErrors.subCategory 
+                    validationErrors.topicId 
                       ? 'border-red-300 bg-red-50' 
                       : 'border-gray-300'
                   } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {getSubCategories(formData.category).map((sub) => (
-                    <option key={sub.value} value={sub.value}>
-                      {sub.label}
+                  <option value="">Chọn chủ đề</option>
+                  {topics.map((topic) => (
+                    <option key={topic._id} value={topic._id}>
+                      {topic.name}
                     </option>
                   ))}
                 </select>
-                {validationErrors.subCategory && (
+                {validationErrors.topicId && (
                   <div className="mt-1 flex items-center text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4 mr-1" />
-                    {validationErrors.subCategory}
+                    {validationErrors.topicId}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="sectionId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mục *
+                </label>
+                <select
+                  id="sectionId"
+                  name="sectionId"
+                  value={formData.sectionId}
+                  onChange={handleInputChange}
+                  required
+                  disabled={uploadMutation.isLoading || !formData.topicId}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    validationErrors.sectionId 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300'
+                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <option value="">Chọn mục</option>
+                  {sections.map((section) => (
+                    <option key={section._id} value={section._id}>
+                      {section.name}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.sectionId && (
+                  <div className="mt-1 flex items-center text-red-600 text-sm">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {validationErrors.sectionId}
                   </div>
                 )}
               </div>

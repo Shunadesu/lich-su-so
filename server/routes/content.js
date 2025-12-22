@@ -3,6 +3,9 @@ const multer = require('multer');
 const path = require('path');
 const { body, validationResult } = require('express-validator');
 const Content = require('../models/Content');
+const Grade = require('../models/Grade');
+const Topic = require('../models/Topic');
+const Section = require('../models/Section');
 const { auth, isTeacher, isStudent } = require('../middleware/auth');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -218,7 +221,7 @@ const deleteCloudinaryFile = async (fileUrl) => {
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category, subCategory, search, page = 1, limit = 10, author, authorRole, isApproved } = req.query;
+    const { category, subCategory, gradeId, topicId, sectionId, search, page = 1, limit = 10, author, authorRole, isApproved } = req.query;
     
     const query = { isPublic: true };
     
@@ -231,6 +234,9 @@ router.get('/', async (req, res) => {
     
     if (category) query.category = category;
     if (subCategory) query.subCategory = subCategory;
+    if (gradeId) query.grade = gradeId;
+    if (topicId) query.topic = topicId;
+    if (sectionId) query.section = sectionId;
     if (author) query.author = author;
     
     if (search) {
@@ -243,6 +249,9 @@ router.get('/', async (req, res) => {
     // First get all contents
     const contents = await Content.find(query)
       .populate('author', 'fullName school role')
+      .populate('grade')
+      .populate('topic')
+      .populate('section')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -290,6 +299,9 @@ router.get('/my-content', auth, async (req, res) => {
     
     const contents = await Content.find(query)
       .populate('author', 'fullName school')
+      .populate('grade')
+      .populate('topic')
+      .populate('section')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -399,7 +411,10 @@ router.get('/:id', async (req, res) => {
   try {
     const content = await Content.findById(req.params.id)
       .populate('author', 'fullName school')
-      .populate('approvedBy', 'fullName');
+      .populate('approvedBy', 'fullName')
+      .populate('grade')
+      .populate('topic')
+      .populate('section');
     
     if (!content) {
       return res.status(404).json({
@@ -497,34 +512,9 @@ const uploadContent = (req, res, next) => {
 
 router.post('/', auth, uploadContent, [
   body('title').notEmpty().withMessage('Tiêu đề là bắt buộc'),
-  body('category').isIn(['lich-su-10', 'lich-su-11', 'lich-su-12', 'lich-su-dia-phuong'])
-    .withMessage('Danh mục không hợp lệ'),
-  body('subCategory').custom((value, { req }) => {
-    const validSubCategories = {
-      'lich-su-10': ['bai-giang-dien-tu', 'sach-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'tu-lieu-dien-tu', 'video', 'hinh-anh', 'bai-kiem-tra'],
-      'lich-su-11': ['bai-giang-dien-tu', 'sach-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'tu-lieu-dien-tu', 'video', 'hinh-anh', 'bai-kiem-tra'],
-      'lich-su-12': ['bai-giang-dien-tu', 'sach-dien-tu', 'ke-hoach-bai-day', 'tu-lieu-lich-su-goc', 'tu-lieu-dien-tu', 'video', 'hinh-anh', 'bai-kiem-tra', 'on-thi-tnthpt'],
-      'lich-su-dia-phuong': [
-        'tu-lieu-lich-su-goc', 
-        'video', 
-        'hinh-anh', 
-        'san-pham-hoc-tap',
-        'tai-lieu-hoc-tap',
-        'hinh-anh-hoc-tap',
-        'video-hoc-tap',
-        'bai-tap-hoc-sinh',
-        'du-an-hoc-tap'
-      ]
-    };
-    
-    const category = req.body.category;
-    const allowedSubCategories = validSubCategories[category] || [];
-    
-    if (!allowedSubCategories.includes(value)) {
-      throw new Error(`Thư mục con không hợp lệ cho danh mục ${category}`);
-    }
-    return true;
-  }),
+  body('gradeId').notEmpty().withMessage('Lớp là bắt buộc'),
+  body('topicId').notEmpty().withMessage('Chủ đề là bắt buộc'),
+  body('sectionId').notEmpty().withMessage('Mục là bắt buộc'),
   body('contentType').isIn(['file', 'youtube']).withMessage('Loại nội dung không hợp lệ'),
   body('youtubeUrl').optional().isURL().withMessage('Link YouTube không hợp lệ')
 ], async (req, res) => {
@@ -538,11 +528,22 @@ router.post('/', auth, uploadContent, [
       });
     }
     
-    const { title, description, category, subCategory, tags, contentType, youtubeUrl } = req.body;
-    
-    // Handle banner image
-    if (req.bannerImageUrl) {
-      contentData.bannerImage = req.bannerImageUrl;
+    const { title, description, gradeId, topicId, sectionId, tags, contentType, youtubeUrl } = req.body;
+
+    // Validate taxonomy relationships
+    const grade = await Grade.findById(gradeId);
+    if (!grade) {
+      return res.status(400).json({ success: false, message: 'Lớp không hợp lệ' });
+    }
+
+    const topic = await Topic.findOne({ _id: topicId, grade: gradeId });
+    if (!topic) {
+      return res.status(400).json({ success: false, message: 'Chủ đề không hợp lệ hoặc không thuộc lớp đã chọn' });
+    }
+
+    const section = await Section.findOne({ _id: sectionId, topic: topicId });
+    if (!section) {
+      return res.status(400).json({ success: false, message: 'Mục không hợp lệ hoặc không thuộc chủ đề đã chọn' });
     }
 
     // Validate content type specific requirements
@@ -585,7 +586,7 @@ router.post('/', auth, uploadContent, [
         'du-an-hoc-tap'
       ];
       
-      if (!allowedStudentSubCategories.includes(subCategory)) {
+      if (!allowedStudentSubCategories.includes(section.slug)) {
         return res.status(403).json({
           success: false,
           message: 'Học sinh chỉ được đăng tải tài liệu học tập, sản phẩm học tập, hình ảnh và video học tập'
@@ -596,8 +597,11 @@ router.post('/', auth, uploadContent, [
     const contentData = {
       title,
       description,
-      category,
-      subCategory,
+      grade: grade._id,
+      topic: topic._id,
+      section: section._id,
+      category: grade.slug, // legacy fields for compatibility
+      subCategory: section.slug,
       contentType,
       author: req.user.id,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
@@ -606,6 +610,11 @@ router.post('/', auth, uploadContent, [
       approvedBy: req.user.role === 'teacher' ? req.user.id : undefined,
       approvedAt: req.user.role === 'teacher' ? new Date() : undefined
     };
+
+    // Handle banner image
+    if (req.bannerImageUrl) {
+      contentData.bannerImage = req.bannerImageUrl;
+    }
     
     // Add content type specific data
     if (contentType === 'file') {
@@ -732,11 +741,45 @@ router.put('/:id', auth, updateContentUpload, async (req, res) => {
     if (req.body.description !== undefined) {
       updateData.description = req.body.description || '';
     }
-    if (req.body.category !== undefined && req.body.category !== '') {
-      updateData.category = req.body.category;
-    }
-    if (req.body.subCategory !== undefined && req.body.subCategory !== '') {
-      updateData.subCategory = req.body.subCategory;
+
+    // Update taxonomy (require all three ids if changing)
+    const { gradeId, topicId, sectionId } = req.body;
+    if (gradeId || topicId || sectionId) {
+      if (!gradeId || !topicId || !sectionId) {
+        return res.status(400).json({ success: false, message: 'Cần đủ gradeId, topicId, sectionId khi thay đổi danh mục' });
+      }
+
+      const grade = await Grade.findById(gradeId);
+      if (!grade) return res.status(400).json({ success: false, message: 'Lớp không hợp lệ' });
+
+      const topic = await Topic.findOne({ _id: topicId, grade: gradeId });
+      if (!topic) return res.status(400).json({ success: false, message: 'Chủ đề không hợp lệ hoặc không thuộc lớp đã chọn' });
+
+      const section = await Section.findOne({ _id: sectionId, topic: topicId });
+      if (!section) return res.status(400).json({ success: false, message: 'Mục không hợp lệ hoặc không thuộc chủ đề đã chọn' });
+
+      updateData.grade = grade._id;
+      updateData.topic = topic._id;
+      updateData.section = section._id;
+      updateData.category = grade.slug;
+      updateData.subCategory = section.slug;
+
+      if (req.user.role === 'student') {
+        const allowedStudentSubCategories = [
+          'san-pham-hoc-tap',
+          'tai-lieu-hoc-tap',
+          'hinh-anh-hoc-tap',
+          'video-hoc-tap',
+          'bai-tap-hoc-sinh',
+          'du-an-hoc-tap'
+        ];
+        if (!allowedStudentSubCategories.includes(section.slug)) {
+          return res.status(403).json({
+            success: false,
+            message: 'Học sinh chỉ được cập nhật vào các mục học tập được phép'
+          });
+        }
+      }
     }
     
     // Handle content type change - delete old files first

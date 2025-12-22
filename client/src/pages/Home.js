@@ -23,7 +23,7 @@ import {
   Award
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
-import { contentAPI, userAPI, getFileUrl } from '../services/api';
+import { contentAPI, userAPI, taxonomyAPI, getFileUrl } from '../services/api';
 import StudentFeatures from '../components/StudentFeatures';
 
 const Home = () => {
@@ -74,76 +74,38 @@ const Home = () => {
   const hasTeachers = teachers?.data && teachers.data.length > 0;
   const isTeacher = user?.role === 'teacher';
 
+  // Taxonomy for dynamic classes
+  const { data: taxonomyData } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false }
+  );
+  const grades = taxonomyData?.data?.data || [];
 
-  const categories = [
-    {
-      id: 'lich-su-10',
-      title: 'Lịch sử 10',
-      description: 'Tài liệu học tập môn Lịch sử lớp 10',
-      icon: BookOpen,
-      color: 'bg-gradient-to-br from-amber-500 to-orange-600',
-      subCategories: [
-        'Chuyên đề học tập',
-        'Bài giảng điện tử',
-        'Sách điện tử',
-        'Kế hoạch bài dạy',
-        'Tư liệu lịch sử gốc',
-        'Video',
-        'Hình ảnh',
-        'Bài kiểm tra'
-      ],
-      // count: '150+'
-    },
-    {
-      id: 'lich-su-11',
-      title: 'Lịch sử 11',
-      description: 'Tài liệu học tập môn Lịch sử lớp 11',
-      icon: BookOpen,
-      color: 'bg-gradient-to-br from-amber-600 to-orange-700',
-      subCategories: [
-        'Chuyên đề học tập',
-        'Bài giảng điện tử',
-        'Sách điện tử',
-        'Kế hoạch bài dạy',
-        'Tư liệu lịch sử gốc',
-        'Video',
-        'Hình ảnh',
-        'Bài kiểm tra'
-      ],
-      // count: '180+'
-    },
-    {
-      id: 'lich-su-12',
-      title: 'Lịch sử 12',
-      description: 'Tài liệu học tập môn Lịch sử lớp 12',
-      icon: BookOpen,
-      color: 'bg-gradient-to-br from-amber-700 to-orange-800',
-      subCategories: [
-        'Chuyên đề học tập',
-        'Bài giảng điện tử',
-        'Sách điện tử',
-        'Kế hoạch bài dạy',
-        'Tư liệu lịch sử gốc',
-        'Video',
-        'Hình ảnh',
-        'Bài kiểm tra',
-        'Ôn thi TNTHPT'
-      ],
-      // count: '200+'
-    },
-    {
-      id: 'lich-su-dia-phuong',
-      title: 'Lịch sử địa phương',
-      description: 'Tài liệu về lịch sử, văn hóa địa phương',
-      icon: Award,
-      color: 'bg-gradient-to-br from-amber-800 to-orange-900',
-      subCategories: [
-        'Lịch sử địa phương',
-        'Tải lên cho Giáo viên',
-      ],
-      // count: '120+'
-    }
-  ];
+  const mapGradeSlugToPath = (slug) => {
+    const mapping = {
+      'lop-10': '/lich-su-10',
+      'lop-11': '/lich-su-11',
+      'lop-12': '/lich-su-12',
+    };
+    return mapping[slug] || '/content';
+  };
+
+  const dynamicCategories = grades.map((g, idx) => ({
+    id: g.slug,
+    title: `Lịch sử ${g.name}`,
+    description: `Tài liệu học tập môn ${g.name}`,
+    icon: BookOpen,
+    color: [
+      'bg-gradient-to-br from-amber-500 to-orange-600',
+      'bg-gradient-to-br from-amber-600 to-orange-700',
+      'bg-gradient-to-br from-amber-700 to-orange-800',
+      'bg-gradient-to-br from-amber-800 to-orange-900',
+    ][idx % 4],
+    link: mapGradeSlugToPath(g.slug),
+    topics: g.topics || [],
+  }));
+
 
   const stats = [
     { 
@@ -376,38 +338,39 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {categories.map((category) => (
+            {dynamicCategories.map((category) => (
               <Link
                 key={category.id}
-                to={`/${category.id}`}
-                className="group block bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden"
+                to={category.link || `/${category.id}`}
+                className="group block bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden h-full"
               >
-                <div className={`${category.color} text-white p-8 relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/10"></div>
-                  <div className="relative">
-                    <category.icon className="h-16 w-16 mx-auto mb-6" />
-                    <h3 className="text-2xl font-bold text-center mb-2">{category.title}</h3>
-                    {/* <div className="text-center text-amber-100 font-semibold">{category.count} tài liệu</div> */}
+                <div className="flex flex-col h-full">
+                  <div className={`${category.color} text-white p-8 relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="relative">
+                      <category.icon className="h-16 w-16 mx-auto mb-6" />
+                      <h3 className="text-2xl font-bold text-center mb-2">{category.title}</h3>
+                    </div>
                   </div>
-                </div>
-                <div className="p-8">
-                  <p className="text-gray-600 mb-6 leading-relaxed">{category.description}</p>
-                  <ul className="space-y-3 mb-6">
-                    {category.subCategories.slice(0, 4).map((sub, index) => (
-                      <li key={index} className="text-sm text-gray-500 flex items-center">
-                        <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
-                        {sub}
-                      </li>
-                    ))}
-                    {category.subCategories.length > 4 && (
-                      <li className="text-sm text-amber-600 font-medium">
-                        +{category.subCategories.length - 4} mục khác
-                      </li>
+                  <div className="flex-1 flex flex-col p-8">
+                    <p className="text-gray-600 mb-4 leading-relaxed">{category.description}</p>
+                    {category.topics && category.topics.length > 0 && (
+                      <ul className="space-y-1 mb-4">
+                        {category.topics.map((topic) => (
+                          <li
+                            key={topic._id}
+                            className="text-sm text-gray-500 line-clamp-1"
+                            title={topic.name}
+                          >
+                            {topic.name}
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                  </ul>
-                  <div className="flex items-center justify-between text-amber-600 font-semibold group-hover:text-amber-700">
-                    <span>Xem chi tiết</span>
-                    <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                    <div className="mt-auto pt-4 flex items-center justify-between text-amber-600 font-semibold group-hover:text-amber-700 border-t border-gray-100">
+                      <span>Xem chi tiết</span>
+                      <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
                 </div>
               </Link>

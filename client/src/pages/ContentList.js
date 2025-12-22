@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { Search, Download, Eye, Calendar, User, GraduationCap, Filter, X, Loader2, AlertCircle } from 'lucide-react';
-import { contentAPI, getFileUrl } from '../services/api';
-import { Link } from 'react-router-dom';
+import { contentAPI, taxonomyAPI, getFileUrl } from '../services/api';
+import { Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ContentListSkeleton, ContentCardSkeleton, ContentListPageSkeleton } from '../components/skeletons';
 
@@ -10,17 +10,58 @@ const ContentList = ({ category }) => {
   // If no category is provided, show all content
   const effectiveCategory = category || 'all';
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSubCategory, setSelectedSubCategory] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [selectedSectionId, setSelectedSectionId] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters] = useState(true); // always show
   const [downloadingFiles, setDownloadingFiles] = useState(new Set());
+  const location = useLocation();
 
-  // Query for teacher content (filtered by category)
+  // Fetch taxonomy tree
+  const { data: taxonomyData } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const grades = taxonomyData?.data?.data || [];
+
+  // Map route category slug -> grade.slug in DB
+  const mapRouteCategoryToGradeSlug = (cat) => {
+    if (!cat || cat === 'all') return null;
+    const mapping = {
+      'lich-su-10': 'lop-10',
+      'lich-su-11': 'lop-11',
+      'lich-su-12': 'lop-12',
+    };
+    return mapping[cat] || null;
+  };
+
+  const activeGradeSlug = mapRouteCategoryToGradeSlug(effectiveCategory);
+  const activeGrade = grades.find((g) => g.slug === activeGradeSlug) || null;
+  const topics = activeGrade?.topics || [];
+  const activeTopic = topics.find((t) => t._id === selectedTopicId) || null;
+  const sections = activeTopic?.sections || [];
+
+  // Sync topic/section from URL (?topic=, ?section=)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const topicParam = params.get('topic');
+    const sectionParam = params.get('section');
+    if (topicParam) setSelectedTopicId(topicParam);
+    if (sectionParam) setSelectedSectionId(sectionParam);
+  }, [location.search]);
+
+  // Query for teacher content (filtered by taxonomy)
   const { data: teacherData, isLoading: teacherLoading, error: teacherError } = useQuery(
-    ['teacher-contents', effectiveCategory, selectedSubCategory, searchTerm, currentPage],
+    ['teacher-contents', activeGrade?._id, selectedTopicId, selectedSectionId, searchTerm, currentPage],
     () => contentAPI.getAll({
-      category: effectiveCategory === 'all' ? undefined : effectiveCategory,
-      subCategory: selectedSubCategory || undefined,
+      gradeId: activeGrade?._id,
+      topicId: selectedTopicId || undefined,
+      sectionId: selectedSectionId || undefined,
       search: searchTerm || undefined,
       page: currentPage,
       limit: 12,
@@ -37,60 +78,19 @@ const ContentList = ({ category }) => {
     }),
   );
 
-  const subCategories = {
-    'lich-su-10': [
-      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
-    ],
-    'lich-su-11': [
-      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' }
-    ],
-    'lich-su-12': [
-      { value: 'chuyen-de-hoc-tap', label: 'Chuyên đề học tập' },
-      { value: 'bai-giang-dien-tu', label: 'Bài giảng điện tử' },
-      { value: 'ke-hoach-bai-day', label: 'Kế hoạch bài dạy' },
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'tu-lieu-dien-tu', label: 'Tư liệu điện tử' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'bai-kiem-tra', label: 'Bài kiểm tra' },
-      { value: 'on-thi-tnthpt', label: 'Ôn thi TNTHPT' }
-    ],
-    'lich-su-dia-phuong': [
-      { value: 'tu-lieu-lich-su-goc', label: 'Tư liệu lịch sử gốc' },
-      { value: 'video', label: 'Video' },
-      { value: 'hinh-anh', label: 'Hình ảnh' },
-      { value: 'san-pham-hoc-tap', label: 'Sản phẩm học tập' },
-      { value: 'tai-lieu-hoc-tap', label: 'Tài liệu học tập' },
-      { value: 'hinh-anh-hoc-tap', label: 'Hình ảnh học tập' },
-      { value: 'video-hoc-tap', label: 'Video học tập' },
-      { value: 'bai-tap-hoc-sinh', label: 'Bài tập học sinh' },
-      { value: 'du-an-hoc-tap', label: 'Dự án học tập' }
-    ]
-  };
+  const headerTitle = useMemo(() => {
+    if (effectiveCategory === 'all') return 'Tất cả tài liệu';
+    if (effectiveCategory === 'lich-su-dia-phuong') return 'Tài liệu Lịch sử địa phương';
+    if (activeGrade?.name) return `Tài liệu ${activeGrade.name}`;
+    return 'Tài liệu';
+  }, [effectiveCategory, activeGrade]);
 
-  const getCategoryTitle = (category) => {
-    const titles = {
-      'lich-su-10': 'Lịch sử 10',
-      'lich-su-11': 'Lịch sử 11',
-      'lich-su-12': 'Lịch sử 12',
-      'lich-su-dia-phuong': 'Lịch sử địa phương'
-    };
-    return titles[category] || category;
-  };
+  const headerDesc = useMemo(() => {
+    if (effectiveCategory === 'all') return 'Tài liệu học tập và nghiên cứu lịch sử';
+    if (effectiveCategory === 'lich-su-dia-phuong') return 'Tài liệu lịch sử địa phương';
+    if (activeGrade?.name) return `Tài liệu học tập và nghiên cứu môn ${activeGrade.name}`;
+    return 'Tài liệu học tập và nghiên cứu lịch sử';
+  }, [effectiveCategory, activeGrade]);
 
   const getFileTypeIcon = (content) => {
     if (content.contentType === 'youtube') {
@@ -129,7 +129,8 @@ const ContentList = ({ category }) => {
 
   const clearFilters = useCallback(() => {
     setSearchTerm('');
-    setSelectedSubCategory('');
+    setSelectedTopicId('');
+    setSelectedSectionId('');
     setCurrentPage(1);
   }, []);
 
@@ -200,13 +201,10 @@ const ContentList = ({ category }) => {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {effectiveCategory === 'all' ? 'Tất cả tài liệu' : getCategoryTitle(effectiveCategory)}
+                {headerTitle}
               </h1>
               <p className="text-gray-600">
-                {effectiveCategory === 'all' 
-                  ? 'Tài liệu học tập và nghiên cứu lịch sử'
-                  : `Tài liệu học tập và nghiên cứu môn ${getCategoryTitle(effectiveCategory)}`
-                }
+                {headerDesc}
               </p>
             </div>
           </div>
@@ -228,16 +226,9 @@ const ContentList = ({ category }) => {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Tìm kiếm và lọc</h3>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center text-sm text-gray-600 hover:text-gray-800"
-              >
-                <Filter className="h-4 w-4 mr-1" />
-                {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-              </button>
             </div>
             
-            <div className={`transition-all duration-300 ${showFilters ? 'block' : 'hidden'}`}>
+            <div className="transition-all duration-300 block">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
@@ -259,20 +250,43 @@ const ContentList = ({ category }) => {
                     )}
                   </div>
                 </div>
-                <div className="md:w-64">
-                  <select
-                    value={selectedSubCategory}
-                    onChange={(e) => setSelectedSubCategory(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Tất cả danh mục</option>
-                    {effectiveCategory !== 'all' && subCategories[effectiveCategory]?.map((sub) => (
-                      <option key={sub.value} value={sub.value}>
-                        {sub.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {effectiveCategory !== 'all' && (
+                  <>
+                    <div className="md:w-64">
+                      <select
+                        value={selectedTopicId}
+                        onChange={(e) => {
+                          setSelectedTopicId(e.target.value);
+                          setSelectedSectionId('');
+                        }}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={!activeGrade}
+                      >
+                        <option value="">Tất cả chủ đề</option>
+                        {topics.map((topic) => (
+                          <option key={topic._id} value={topic._id}>
+                            {topic.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="md:w-64">
+                      <select
+                        value={selectedSectionId}
+                        onChange={(e) => setSelectedSectionId(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={!selectedTopicId}
+                      >
+                        <option value="">Tất cả mục</option>
+                        {sections.map((section) => (
+                          <option key={section._id} value={section._id}>
+                            {section.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={clearFilters}
@@ -284,7 +298,7 @@ const ContentList = ({ category }) => {
               </div>
               
               {/* Active filters display */}
-              {(searchTerm || selectedSubCategory) && (
+              {(searchTerm || selectedTopicId || selectedSectionId) && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {searchTerm && (
                     <span className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
@@ -297,12 +311,26 @@ const ContentList = ({ category }) => {
                       </button>
                     </span>
                   )}
-                  {selectedSubCategory && (
+                  {selectedTopicId && (
                     <span className="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                      Danh mục: {subCategories[effectiveCategory]?.find(sub => sub.value === selectedSubCategory)?.label}
+                      Chủ đề: {topics.find(t => t._id === selectedTopicId)?.name || 'Đã chọn'}
                       <button
-                        onClick={() => setSelectedSubCategory('')}
+                        onClick={() => {
+                          setSelectedTopicId('');
+                          setSelectedSectionId('');
+                        }}
                         className="ml-2 text-green-600 hover:text-green-800"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                  {selectedSectionId && (
+                    <span className="inline-flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
+                      Mục: {sections.find(s => s._id === selectedSectionId)?.name || 'Đã chọn'}
+                      <button
+                        onClick={() => setSelectedSectionId('')}
+                        className="ml-2 text-emerald-600 hover:text-emerald-800"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -375,6 +403,11 @@ const ContentList = ({ category }) => {
                       <User className="h-4 w-4 mr-1" />
                       {content.author?.fullName || 'Không xác định'}
                     </div>
+                  <div className="flex flex-col text-[11px] text-gray-500 mb-3 space-y-1">
+                    <span className="font-semibold text-gray-700">{content.grade?.name || content.grade?.slug || ''}</span>
+                    <span>{content.topic?.name || ''}</span>
+                    <span className="text-gray-500">{content.section?.name || ''}</span>
+                  </div>
                     <div className="flex items-center text-xs text-gray-500 mb-4">
                       <Calendar className="h-4 w-4 mr-1" />
                       {formatDate(content.createdAt)}

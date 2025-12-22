@@ -7,7 +7,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  Shield
+  Shield,
+  Layers3
 } from 'lucide-react';
 import { useAuthStore } from '../store';
 
@@ -37,6 +38,11 @@ const Layout = () => {
       name: 'Quản lý người dùng',
       path: '/users',
       icon: Users,
+    },
+    {
+      name: 'Quản lý danh mục',
+      path: '/taxonomy',
+      icon: Layers3,
     },
   ];
 

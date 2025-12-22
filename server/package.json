@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "build": "echo 'No build step required for Node.js'",
     "test": "echo 'No tests specified'",
-    "create-admin": "node scripts/createAdmin.js"
+    "create-admin": "node scripts/createAdmin.js",
+    "reset-seed": "node scripts/resetAndSeedTaxonomy.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

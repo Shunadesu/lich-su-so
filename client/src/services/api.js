@@ -110,6 +110,11 @@ export const authAPI = {
   createFirstTeacher: (data) => api.post('/auth/create-first-teacher', data),
 };
 
+// Taxonomy API
+export const taxonomyAPI = {
+  getTree: () => api.get('/taxonomy'),
+};
+
 // Content API with enhanced error handling
 export const contentAPI = {
   getAll: (params) => api.get('/content', { params }),

@@ -14,28 +14,12 @@ const contentSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Danh mục là bắt buộc'],
-    enum: ['lich-su-10', 'lich-su-11', 'lich-su-12', 'lich-su-dia-phuong']
+    trim: true
   },
   subCategory: {
     type: String,
     required: [true, 'Thư mục con là bắt buộc'],
-    enum: [
-      'bai-giang-dien-tu',
-      'sach-dien-tu',
-      'ke-hoach-bai-day', 
-      'tu-lieu-lich-su-goc',
-      'tu-lieu-dien-tu',
-      'video',
-      'hinh-anh',
-      'bai-kiem-tra',
-      'on-thi-tnthpt',
-      'san-pham-hoc-tap',
-      'tai-lieu-hoc-tap',
-      'hinh-anh-hoc-tap',
-      'video-hoc-tap',
-      'bai-tap-hoc-sinh',
-      'du-an-hoc-tap'
-    ]
+    trim: true
   },
   contentType: {
     type: String,
@@ -84,9 +68,22 @@ const contentSchema = new mongoose.Schema({
   },
   youtubeId: {
     type: String,
-    required: function() {
-      return this.contentType === 'youtube';
-    }
+    required: false
+  },
+  grade: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Grade',
+    required: false
+  },
+  topic: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic',
+    required: false
+  },
+  section: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Section',
+    required: false
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -148,5 +145,6 @@ contentSchema.index({ title: 'text', description: 'text', tags: 'text' });
 contentSchema.index({ author: 1, createdAt: -1 });
 contentSchema.index({ contentType: 1 });
 contentSchema.index({ youtubeId: 1 });
+contentSchema.index({ grade: 1, topic: 1, section: 1 });
 
 module.exports = mongoose.model('Content', contentSchema); 

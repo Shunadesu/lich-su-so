@@ -9,6 +9,7 @@ require('dotenv').config();
 const authRoutes = require(path.join(__dirname, 'routes', 'auth.js'));
 const contentRoutes = require(path.join(__dirname, 'routes', 'content.js'));
 const userRoutes = require(path.join(__dirname, 'routes', 'users.js'));
+const taxonomyRoutes = require(path.join(__dirname, 'routes', 'taxonomy.js'));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -106,6 +107,7 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/taxonomy', taxonomyRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

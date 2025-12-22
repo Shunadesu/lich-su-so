@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import {
-  FileText,
   Search,
   CheckCircle,
   XCircle,
@@ -12,8 +11,11 @@ import {
   Download,
   Edit,
   Plus,
+  FileText,
+  Calendar,
+  BarChart3,
 } from 'lucide-react';
-import { contentAPI, getFileUrl } from '../services/api';
+import { contentAPI, taxonomyAPI, getFileUrl } from '../services/api';
 import { useAdminStore } from '../store';
 import { ContentTableSkeleton } from '../components/skeletons';
 import toast from 'react-hot-toast';
@@ -22,24 +24,41 @@ const ContentManagement = () => {
   const queryClient = useQueryClient();
   const { contentFilters, setContentFilters } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState(contentFilters.search || '');
-  const [categoryFilter, setCategoryFilter] = useState(contentFilters.category || '');
+  const [gradeFilter, setGradeFilter] = useState(contentFilters.gradeId || '');
+  const [legacyLocalFilter, setLegacyLocalFilter] = useState(contentFilters.category || '');
+  const [topicFilter, setTopicFilter] = useState(contentFilters.topicId || '');
+  const [sectionFilter, setSectionFilter] = useState(contentFilters.sectionId || '');
   const [approvalFilter, setApprovalFilter] = useState(
     contentFilters.isApproved !== null ? String(contentFilters.isApproved) : 'all'
   );
 
+  // Fetch taxonomy tree for filters
+  const { data: taxonomyData } = useQuery(
+    ['taxonomy'],
+    () => taxonomyAPI.getTree(),
+    { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false }
+  );
+
+  const grades = taxonomyData?.data?.data || [];
+  const topics = useMemo(() => {
+    const g = grades.find((gr) => gr._id === gradeFilter);
+    return g?.topics || [];
+  }, [grades, gradeFilter]);
+  const sections = useMemo(() => {
+    const t = topics.find((tp) => tp._id === topicFilter);
+    return t?.sections || [];
+  }, [topics, topicFilter]);
+
   const { data, isLoading, error } = useQuery(
-    ['admin-content', contentFilters.search, contentFilters.category, contentFilters.isApproved],
+    ['admin-content', searchTerm, gradeFilter, topicFilter, sectionFilter, approvalFilter, legacyLocalFilter],
     () => {
-      const params = {
-        limit: 50,
-      };
-      if (contentFilters.search) params.search = contentFilters.search;
-      if (contentFilters.category) params.category = contentFilters.category;
-      if (contentFilters.isApproved !== null && contentFilters.isApproved !== undefined) {
-        params.isApproved = contentFilters.isApproved;
-      }
-      if (contentFilters.subCategory) params.subCategory = contentFilters.subCategory;
-      if (contentFilters.author) params.author = contentFilters.author;
+      const params = { limit: 50 };
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+      if (gradeFilter) params.gradeId = gradeFilter;
+      if (topicFilter) params.topicId = topicFilter;
+      if (sectionFilter) params.sectionId = sectionFilter;
+      if (legacyLocalFilter === 'lich-su-dia-phuong') params.category = 'lich-su-dia-phuong';
+      if (approvalFilter !== 'all') params.isApproved = approvalFilter === 'true';
       return contentAPI.getAll(params);
     },
     {
@@ -77,7 +96,10 @@ const ContentManagement = () => {
   const applyFilters = () => {
     const newFilters = {
       search: searchTerm.trim() || null,
-      category: categoryFilter || null,
+      gradeId: gradeFilter || null,
+      topicId: topicFilter || null,
+      sectionId: sectionFilter || null,
+      category: legacyLocalFilter || null,
       isApproved: approvalFilter !== 'all' ? (approvalFilter === 'true') : null,
     };
     setContentFilters(newFilters);
@@ -144,7 +166,7 @@ const ContentManagement = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
@@ -157,26 +179,57 @@ const ContentManagement = () => {
             />
           </div>
           <select
-            value={categoryFilter}
+            value={gradeFilter || legacyLocalFilter}
             onChange={(e) => {
-              setCategoryFilter(e.target.value);
-              // Auto apply filter when category changes
-              setTimeout(() => {
-                const newFilters = {
-                  search: searchTerm.trim() || null,
-                  category: e.target.value || null,
-                  isApproved: approvalFilter !== 'all' ? (approvalFilter === 'true') : null,
-                };
-                setContentFilters(newFilters);
-                queryClient.invalidateQueries(['admin-content']);
-              }, 0);
+              const val = e.target.value;
+              // Legacy option for Lịch sử địa phương (không nằm trong taxonomy grade)
+              if (val === 'lich-su-dia-phuong') {
+                setGradeFilter('');
+                setTopicFilter('');
+                setSectionFilter('');
+                setLegacyLocalFilter('lich-su-dia-phuong');
+              } else {
+                setGradeFilter(val);
+                setTopicFilter('');
+                setSectionFilter('');
+                setLegacyLocalFilter('');
+              }
             }}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
+            <option value="">Tất cả lớp</option>
+            {grades.map((g) => (
+              <option key={g._id} value={g._id}>
+                {`Lịch sử ${g.name}`}
               </option>
+            ))}
+            <option value="lich-su-dia-phuong">Lịch sử địa phương</option>
+          </select>
+
+          <select
+            value={topicFilter}
+            onChange={(e) => {
+              setTopicFilter(e.target.value);
+              setSectionFilter('');
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            disabled={!gradeFilter}
+          >
+            <option value="">Tất cả chủ đề</option>
+            {topics.map((t) => (
+              <option key={t._id} value={t._id}>{t.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={sectionFilter}
+            onChange={(e) => setSectionFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            disabled={!topicFilter}
+          >
+            <option value="">Tất cả mục</option>
+            {sections.map((s) => (
+              <option key={s._id} value={s._id}>{s.name}</option>
             ))}
           </select>
           <select
@@ -223,10 +276,19 @@ const ContentManagement = () => {
                   Tiêu đề
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Danh mục
+                  Lớp / Chủ đề / Mục
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tác giả
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Loại nội dung
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Lượt xem / tải
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày tạo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
@@ -286,14 +348,35 @@ const ContentManagement = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                        {content.category}
-                      </span>
+                      <div className="flex flex-col gap-1 text-xs text-gray-700">
+                        <span className="px-2 inline-flex text-[11px] leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 w-fit">
+                          {content.grade?.name || content.grade?.slug || 'Chưa có lớp'}
+                        </span>
+                        <span className="line-clamp-1">{content.topic?.name || 'Chưa có chủ đề'}</span>
+                        <span className="line-clamp-1 text-gray-500">{content.section?.name || 'Chưa có mục'}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {typeof content.author === 'object'
                         ? content.author?.fullName || 'Không xác định'
                         : content.author}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {content.contentType === 'youtube' ? 'YouTube' : 'File'}{content.fileType ? ` • ${content.fileType?.toUpperCase()}` : ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <Eye className="h-4 w-4 text-gray-500" />
+                        <span>{content.viewCount || 0}</span>
+                        <Download className="h-4 w-4 text-gray-500 ml-2" />
+                        <span>{content.downloadCount || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span>{content.createdAt ? new Date(content.createdAt).toLocaleDateString('vi-VN') : ''}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {content.isApproved ? (

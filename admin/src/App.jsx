@@ -11,6 +11,7 @@ import EditContent from './pages/EditContent';
 import UploadContent from './pages/UploadContent';
 import UserDetail from './pages/UserDetail';
 import CreateUser from './pages/CreateUser';
+import TaxonomyManagement from './pages/TaxonomyManagement';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isTeacher } = useAuthStore();
@@ -47,6 +48,7 @@ function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="users/new" element={<CreateUser />} />
           <Route path="users/:id" element={<UserDetail />} />
+          <Route path="taxonomy" element={<TaxonomyManagement />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
