@@ -91,6 +91,80 @@ router.post('/register', [
   }
 });
 
+// @route   POST /api/auth/register-teacher
+// @desc    Giáo viên tự đăng ký tài khoản để vào admin
+// @access  Public
+router.post('/register-teacher', [
+  body('phone')
+    .isMobilePhone('vi-VN')
+    .withMessage('Số điện thoại không hợp lệ'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
+  body('fullName')
+    .notEmpty()
+    .withMessage('Họ tên là bắt buộc')
+], async (req, res) => {
+  try {
+    // Check validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array() 
+      });
+    }
+
+    const { phone, password, fullName, email } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ phone });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Số điện thoại đã được sử dụng'
+      });
+    }
+
+    // Create new teacher account
+    const newTeacher = new User({
+      phone,
+      password,
+      fullName,
+      role: 'teacher',
+      email,
+      isActive: true
+    });
+
+    await newTeacher.save();
+
+    // Generate token
+    const token = generateToken(newTeacher._id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Tạo tài khoản giáo viên thành công',
+      token,
+      user: {
+        id: newTeacher._id,
+        phone: newTeacher.phone,
+        fullName: newTeacher.fullName,
+        role: newTeacher.role,
+        email: newTeacher.email,
+        school: newTeacher.school,
+        createdAt: newTeacher.createdAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Register teacher error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server'
+    });
+  }
+});
+
 // @route   POST /api/auth/login
 // @desc    Đăng nhập
 // @access  Public
