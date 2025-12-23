@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
-import { FileText, Users, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { FileText, Users, CheckCircle, XCircle, TrendingUp, ExternalLink } from 'lucide-react';
 import { contentAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store';
 
@@ -88,11 +88,22 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Chào mừng, {user?.fullName}
-        </h1>
-        <p className="text-gray-600">Tổng quan hệ thống</p>
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Chào mừng, {user?.fullName}
+          </h1>
+          <p className="text-gray-600">Tổng quan hệ thống</p>
+        </div>
+        <a
+          href="https://du-lieu-lich-su-so.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg shadow-sm hover:bg-amber-500 transition-colors"
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span>Xem trang người dùng</span>
+        </a>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

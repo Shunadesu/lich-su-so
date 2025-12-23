@@ -79,6 +79,7 @@ const ContentManagement = () => {
       },
     }
   );
+  const [approvingId, setApprovingId] = useState(null);
 
   const deleteMutation = useMutation(
     (id) => contentAPI.delete(id),
@@ -408,11 +409,18 @@ const ContentManagement = () => {
                       </Link>
                       {!content.isApproved && (
                         <button
-                          onClick={() => approveMutation.mutate(content._id)}
-                          className="text-green-600 hover:text-green-900"
+                          onClick={() => {
+                            setApprovingId(content._id);
+                            approveMutation.mutate(content._id, {
+                              onSettled: () => setApprovingId(null),
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 text-green-600 hover:text-green-900 disabled:opacity-50"
                           title="Phê duyệt"
+                          disabled={approvingId === content._id || approveMutation.isLoading}
                         >
                           <CheckCircle className="h-5 w-5 inline" />
+                          {approvingId === content._id ? 'Đang duyệt...' : 'Duyệt'}
                         </button>
                       )}
                       <button

@@ -5,6 +5,8 @@ import { BookOpen, User, LogOut, Upload, Users, BarChart3, Menu, X, CheckCircle,
 import useAuthStore from '../store/authStore';
 import { taxonomyAPI } from '../services/api';
 
+const ADMIN_DASHBOARD_URL = 'https://admin-du-lieu-lss.vercel.app/';
+
 const Header = () => {
   const { user, isAuthenticated, logout, isTeacher } = useAuthStore();
   const navigate = useNavigate();
@@ -140,15 +142,17 @@ const Header = () => {
                     >
                       Hồ sơ cá nhân
                     </Link>
-                    {/* Dashboard for Teachers */}
+                {/* Dashboard for Teachers (link to admin site) */}
                 {isTeacher() && (
-                  <Link
-                    to="/dashboard"
+                  <a
+                    href={ADMIN_DASHBOARD_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center space-x-2 bg-amber-700 hover:bg-amber-600 px-4 py-2  transition-colors"
                   >
                     <BarChart3 className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
+                    <span>Dashboard (Admin)</span>
+                  </a>
                 )}
 
                 {/* Student Dashboard */}
@@ -302,16 +306,18 @@ const Header = () => {
                     </Link>
                   )}
 
-                  {/* Dashboard for Teachers */}
+                  {/* Dashboard for Teachers (link to admin site) */}
                   {isTeacher() && (
-                    <Link
-                      to="/dashboard"
+                    <a
+                      href={ADMIN_DASHBOARD_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center space-x-2 bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-colors w-full"
                       onClick={closeMobileMenu}
                     >
                       <BarChart3 className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
+                      <span>Dashboard (Admin)</span>
+                    </a>
                   )}
 
                   {/* Student Dashboard */}

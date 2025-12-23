@@ -350,11 +350,11 @@ const ContentList = ({ category }) => {
                 <div key={content._id || content.id || idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-amber-200 overflow-hidden">
                   {/* Banner Image */}
                   {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
-                    <div className="w-full h-40 overflow-hidden">
+                    <div className="w-full h-64 overflow-hidden">
                       <img
                         src={getFileUrl(content.bannerImage)}
                         alt={content.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           const fallback = e.target.nextElementSibling;
@@ -511,7 +511,7 @@ const ContentList = ({ category }) => {
                 <div key={content._id || content.id || idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-200 overflow-hidden">
                   {/* Banner Image */}
                   {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
-                    <div className="w-full h-40 overflow-hidden">
+                    <div className="w-full h-64 overflow-hidden">
                       <img
                         src={getFileUrl(content.bannerImage)}
                         alt={content.title}

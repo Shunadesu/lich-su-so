@@ -286,36 +286,6 @@ const Home = () => {
         </div>
       </section>
 
-      
-
-      {/* Create First Teacher Section */}
-      {user && !hasTeachers && !isTeacher && (
-        <section className="bg-gradient-to-r from-amber-50 to-orange-50 py-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-amber-200">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-6">
-                  <Shield className="h-8 w-8 text-amber-600" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Thiết lập hệ thống
-                </h2>
-                <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Hệ thống chưa có tài khoản giáo viên nào. Bạn có muốn tạo tài khoản giáo viên đầu tiên để quản lý hệ thống?
-                </p>
-                <Link
-                  to="/create-first-teacher"
-                  className="inline-flex items-center bg-amber-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  <Shield className="h-5 w-5 mr-2" />
-                  Tạo tài khoản giáo viên
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Student Features Section */}
       {user && !isTeacher && (
         <section className="py-12 bg-white">

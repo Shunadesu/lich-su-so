@@ -169,6 +169,12 @@ router.post('/topics', auth, isTeacher, [
     res.json({ success: true, data: topic });
   } catch (err) {
     console.error('Error creating topic:', err);
+    if (err.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Slug chủ đề đã tồn tại cho lớp này (hoặc index cũ vẫn còn). Vui lòng đổi slug hoặc chạy lại drop index.'
+      });
+    }
     res.status(500).json({ success: false, message: 'Lỗi tạo chủ đề' });
   }
 });

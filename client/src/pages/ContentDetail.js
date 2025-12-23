@@ -283,7 +283,7 @@ const ContentDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back Button - Fixed at top */}
-      <div className="container mx-auto px-4 pt-6 pb-4">
+      <div className="container mx-auto px-4 pt-4 pb-3 sm:pt-6 sm:pb-4">
         <Link
           to="/"
           className="inline-flex items-center text-amber-700 hover:text-amber-800"
@@ -295,30 +295,30 @@ const ContentDetail = () => {
 
       {/* Banner Image - Full width, above title */}
       {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
-        <div className="w-full h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100">
+        <div className="w-full h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100">
           <img 
             src={getFileUrl(content.bannerImage)} 
             alt={content.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             onError={(e) => {
               e.target.style.display = 'none';
             }}
           />
         </div>
       ) : (
-        <div className="w-full h-48 md:h-64 bg-gradient-to-br from-amber-100 via-orange-100 to-red-100 flex items-center justify-center">
+        <div className="w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-amber-100 via-orange-100 to-red-100 flex items-center justify-center">
           <div className="text-center">
             <span className="text-6xl md:text-8xl">{getFileTypeIcon(content.contentType === 'youtube' ? 'youtube' : content.fileType)}</span>
           </div>
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Content Header */}
-        <div className="bg-white rounded-lg shadow-sm p-8 mb-8 -mt-16 md:-mt-20 lg:-mt-24 relative z-10">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="bg-white rounded-lg shadow-sm p-5 sm:p-8 mb-8 -mt-16 md:-mt-20 lg:-mt-24 relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 break-words">
                 {content.title}
               </h1>
               <div className="flex items-center flex-wrap gap-2 text-sm text-gray-500 mt-3">
@@ -337,11 +337,11 @@ const ContentDetail = () => {
                 )}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2 w-full lg:w-auto">
               <button
                 onClick={handleDownload}
                 disabled={isDownloading || downloadMutation.isLoading}
-                className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 {isDownloading || downloadMutation.isLoading ? (
                   <>
@@ -359,7 +359,7 @@ const ContentDetail = () => {
                 <button
                   onClick={handleApprove}
                   disabled={approveMutation.isLoading}
-                  className="flex items-center bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                 >
                   {approveMutation.isLoading ? (
                     <>
@@ -378,7 +378,7 @@ const ContentDetail = () => {
                 <button
                   onClick={handleDelete}
                   disabled={deleteMutation.isLoading}
-                  className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                 >
                   {deleteMutation.isLoading ? (
                     <>
@@ -549,7 +549,7 @@ const ContentDetail = () => {
 
         {/* Image Preview */}
         {content.contentType === 'file' && isImageFile(content.fileType) && content.fileUrl && (
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-5 sm:p-8 mb-8">
             <h2 className="text-xl font-semibold mb-4 text-gray-900">Xem trước hình ảnh</h2>
             <div className="relative w-full max-w-4xl mx-auto">
               <img 
@@ -573,7 +573,7 @@ const ContentDetail = () => {
 
         {/* YouTube Video Embed */}
         {content.contentType === 'youtube' && content.youtubeId && (
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-5 sm:p-8 mb-8">
             <h2 className="text-xl font-semibold mb-4 text-gray-900">Video</h2>
             <YouTubeEmbed youtubeId={content.youtubeId} />
             {content.youtubeUrl && (
@@ -594,10 +594,10 @@ const ContentDetail = () => {
 
         {/* File Download Section */}
         {content.contentType === 'file' && !isImageFile(content.fileType) && (
-          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-5 sm:p-8 mb-8">
             <h2 className="text-xl font-semibold mb-4 text-gray-900">Tải xuống</h2>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-start sm:items-center gap-3">
                 <FileText className="h-8 w-8 mr-3 text-gray-600" />
                 <div>
                   <p className="font-medium text-gray-900">{content.fileName}</p>
@@ -607,7 +607,7 @@ const ContentDetail = () => {
               <button
                 onClick={handleDownload}
                 disabled={isDownloading || downloadMutation.isLoading}
-                className="flex items-center bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 {isDownloading || downloadMutation.isLoading ? (
                   <>

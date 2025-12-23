@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useDropzone } from 'react-dropzone';
@@ -13,6 +13,9 @@ const UploadContent = () => {
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
   const { user, isStudent } = useAuthStore();
+  const isStudentUser = isStudent();
+  const studentSectionSlug = 'san-pham-hoc-tap';
+  const [studentTaxonomyError, setStudentTaxonomyError] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -46,6 +49,75 @@ const UploadContent = () => {
   const topics = selectedGrade?.topics || [];
   const selectedTopic = topics.find((t) => t._id === formData.topicId);
   const sections = selectedTopic?.sections || [];
+
+  // Auto-assign taxonomy for students: use their grade and point to "Sản phẩm học tập"
+  useEffect(() => {
+    if (!isStudentUser || editId) return;
+    const gradeList = taxonomyData?.data?.data || [];
+    if (!gradeList.length) return;
+
+    const rawUserGrade = user?.grade;
+    const normalizedUserGrade = typeof rawUserGrade === 'number'
+      ? String(rawUserGrade)
+      : (rawUserGrade || '').toString().trim().toLowerCase();
+
+    const normalizeCandidates = (value) => {
+      if (!value) return [];
+      const v = value.toLowerCase();
+      const numMatch = v.match(/(\d{1,2})/);
+      const numbers = numMatch ? [numMatch[1]] : [];
+      const candidates = new Set([v]);
+      numbers.forEach((n) => {
+        candidates.add(`lớp ${n}`);
+        candidates.add(`lop ${n}`);
+        candidates.add(`lop-${n}`);
+      });
+      return Array.from(candidates);
+    };
+
+    const userGradeCandidates = normalizeCandidates(normalizedUserGrade);
+    const matchesUserGrade = (grade) => {
+      const gradeNames = normalizeCandidates(grade.name);
+      const gradeSlugs = normalizeCandidates(grade.slug);
+      return userGradeCandidates.some((c) => gradeNames.includes(c) || gradeSlugs.includes(c));
+    };
+
+    const findTarget = (gradesArr) => {
+      for (const grade of gradesArr) {
+        const topicWithSection = grade.topics?.find((t) =>
+          t.sections?.some((s) => s.slug === studentSectionSlug)
+        );
+        if (topicWithSection) {
+          const targetSection = topicWithSection.sections.find(
+            (s) => s.slug === studentSectionSlug
+          );
+          return { grade, topic: topicWithSection, section: targetSection };
+        }
+      }
+      return null;
+    };
+
+    const preferredGrades = gradeList.filter(matchesUserGrade);
+    const orderedGrades = preferredGrades.length
+      ? [...preferredGrades, ...gradeList.filter((g) => !matchesUserGrade(g))]
+      : gradeList;
+
+    const target = findTarget(orderedGrades);
+
+    if (!target) {
+      setStudentTaxonomyError('Không tìm thấy chủ đề/mục "Sản phẩm học tập". Vui lòng liên hệ giáo viên hoặc quản trị để cấu hình.');
+      return;
+    }
+
+    setStudentTaxonomyError('');
+
+    setFormData((prev) => ({
+      ...prev,
+      gradeId: prev.gradeId || target.grade?._id || '',
+      topicId: prev.topicId || target.topic?._id || '',
+      sectionId: prev.sectionId || target.section?._id || ''
+    }));
+  }, [isStudentUser, editId, taxonomyData, studentSectionSlug, user?.grade]);
 
   // Fetch content for editing
   const { isLoading: isLoadingEdit } = useQuery(
@@ -273,26 +345,25 @@ const UploadContent = () => {
 
     // Validate taxonomy selection
     if (!formData.gradeId) {
-      errors.gradeId = 'Vui lòng chọn lớp';
+      errors.gradeId = isStudentUser
+        ? 'Không xác định được lớp học. Vui lòng cập nhật hồ sơ hoặc liên hệ giáo viên.'
+        : 'Vui lòng chọn lớp';
     }
     if (!formData.topicId) {
-      errors.topicId = 'Vui lòng chọn chủ đề';
+      errors.topicId = isStudentUser
+        ? 'Không tìm thấy chủ đề "Sản phẩm học tập". Vui lòng liên hệ giáo viên/quản trị.'
+        : 'Vui lòng chọn chủ đề';
     }
     if (!formData.sectionId) {
-      errors.sectionId = 'Vui lòng chọn mục';
+      errors.sectionId = isStudentUser
+        ? 'Không tìm thấy mục "Sản phẩm học tập". Vui lòng liên hệ giáo viên/quản trị.'
+        : 'Vui lòng chọn mục';
     }
 
     // Check student permissions based on section slug
-    if (isStudent() && formData.sectionId && sections.length > 0) {
+    if (isStudentUser && formData.sectionId && sections.length > 0) {
       const selectedSection = sections.find(s => s._id === formData.sectionId);
-      const allowedStudentSubCategories = [
-        'san-pham-hoc-tap',
-        'tai-lieu-hoc-tap',
-        'hinh-anh-hoc-tap',
-        'video-hoc-tap',
-        'bai-tap-hoc-sinh',
-        'du-an-hoc-tap'
-      ];
+      const allowedStudentSubCategories = [studentSectionSlug];
       
       if (selectedSection && !allowedStudentSubCategories.includes(selectedSection.slug)) {
         errors.sectionId = 'Vui lòng chọn mục phù hợp cho học sinh (tài liệu/sản phẩm học tập, hình ảnh, video học tập, bài tập, dự án...)';
@@ -709,101 +780,161 @@ const UploadContent = () => {
 
             {/* Taxonomy Selection */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label htmlFor="gradeId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Lớp *
-                </label>
-                <select
-                  id="gradeId"
-                  name="gradeId"
-                  value={formData.gradeId}
-                  onChange={handleInputChange}
-                  required
-                  disabled={uploadMutation.isLoading || !grades.length}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    validationErrors.gradeId 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300'
-                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <option value="">Chọn lớp</option>
-                  {grades.map((grade) => (
-                    <option key={grade._id} value={grade._id}>
-                      {grade.name}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.gradeId && (
-                  <div className="mt-1 flex items-center text-red-600 text-sm">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {validationErrors.gradeId}
+              {isStudentUser ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Lớp *
+                    </label>
+                    <div className="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700">
+                      {selectedGrade?.name || 'Đang xác định từ tài khoản của bạn'}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Hệ thống tự lấy theo lớp đã khai báo.</p>
+                    {validationErrors.gradeId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.gradeId}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div>
-                <label htmlFor="topicId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Chủ đề *
-                </label>
-                <select
-                  id="topicId"
-                  name="topicId"
-                  value={formData.topicId}
-                  onChange={handleInputChange}
-                  required
-                  disabled={uploadMutation.isLoading || !formData.gradeId}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    validationErrors.topicId 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300'
-                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <option value="">Chọn chủ đề</option>
-                  {topics.map((topic) => (
-                    <option key={topic._id} value={topic._id}>
-                      {topic.name}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.topicId && (
-                  <div className="mt-1 flex items-center text-red-600 text-sm">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {validationErrors.topicId}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chủ đề *
+                    </label>
+                    <div className="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700">
+                      {selectedTopic?.name || 'Sản phẩm học tập'}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Cố định: Sản phẩm học tập.</p>
+                    {validationErrors.topicId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.topicId}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div>
-                <label htmlFor="sectionId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Mục *
-                </label>
-                <select
-                  id="sectionId"
-                  name="sectionId"
-                  value={formData.sectionId}
-                  onChange={handleInputChange}
-                  required
-                  disabled={uploadMutation.isLoading || !formData.topicId}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    validationErrors.sectionId 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300'
-                  } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <option value="">Chọn mục</option>
-                  {sections.map((section) => (
-                    <option key={section._id} value={section._id}>
-                      {section.name}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.sectionId && (
-                  <div className="mt-1 flex items-center text-red-600 text-sm">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {validationErrors.sectionId}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mục *
+                    </label>
+                    <div className="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700">
+                      {sections.find((s) => s._id === formData.sectionId)?.name || 'Sản phẩm học tập'}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Cố định: Mục Sản phẩm học tập.</p>
+                    {studentTaxonomyError && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {studentTaxonomyError}
+                      </div>
+                    )}
+                    {validationErrors.sectionId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.sectionId}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label htmlFor="gradeId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Lớp *
+                    </label>
+                    <select
+                      id="gradeId"
+                      name="gradeId"
+                      value={formData.gradeId}
+                      onChange={handleInputChange}
+                      required
+                      disabled={uploadMutation.isLoading || !grades.length}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        validationErrors.gradeId 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="">Chọn lớp</option>
+                      {grades.map((grade) => (
+                        <option key={grade._id} value={grade._id}>
+                          {grade.name}
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.gradeId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.gradeId}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="topicId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Chủ đề *
+                    </label>
+                    <select
+                      id="topicId"
+                      name="topicId"
+                      value={formData.topicId}
+                      onChange={handleInputChange}
+                      required
+                      disabled={uploadMutation.isLoading || !formData.gradeId}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        validationErrors.topicId 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="">Chọn chủ đề</option>
+                      {topics.map((topic) => (
+                        <option key={topic._id} value={topic._id}>
+                          {topic.name}
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.topicId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.topicId}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="sectionId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Mục *
+                    </label>
+                    <select
+                      id="sectionId"
+                      name="sectionId"
+                      value={formData.sectionId}
+                      onChange={handleInputChange}
+                      required
+                      disabled={uploadMutation.isLoading || !formData.topicId}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        validationErrors.sectionId 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300'
+                      } ${uploadMutation.isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <option value="">Chọn mục</option>
+                      {sections.map((section) => (
+                        <option key={section._id} value={section._id}>
+                          {section.name}
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.sectionId && (
+                      <div className="mt-1 flex items-center text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        {validationErrors.sectionId}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Tags */}
@@ -851,15 +982,7 @@ const UploadContent = () => {
               )}
             </div>
 
-            {/* Permission Notice */}
-            {isStudent() && formData.subCategory !== 'san-pham-hoc-tap' && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-yellow-800 text-sm">
-                  ⚠️ Lưu ý: Học sinh chỉ được đăng tải sản phẩm học tập. 
-                  Vui lòng chọn "Sản phẩm học tập" trong thư mục con.
-                </p>
-              </div>
-            )}
+            
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6 border-t">
