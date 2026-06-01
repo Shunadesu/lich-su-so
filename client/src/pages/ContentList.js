@@ -46,13 +46,15 @@ const ContentList = ({ category }) => {
   const activeTopic = topics.find((t) => t._id === selectedTopicId) || null;
   const sections = activeTopic?.sections || [];
 
-  // Sync topic/section from URL (?topic=, ?section=)
+  // Sync topic/section/search from URL (?topic=, ?section=, ?search=)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const topicParam = params.get('topic');
     const sectionParam = params.get('section');
+    const searchParam = params.get('search');
     if (topicParam) setSelectedTopicId(topicParam);
     if (sectionParam) setSelectedSectionId(sectionParam);
+    if (searchParam) setSearchTerm(searchParam);
   }, [location.search]);
 
   // Query for teacher content (filtered by taxonomy)

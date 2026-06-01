@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import BackToTop from './components/BackToTop';
+import AIChatWidget from './components/AIChatWidget';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -85,6 +86,7 @@ function App() {
       </main>
       <Footer />
       <BackToTop />
+      <AIChatWidget />
     </div>
   );
 }

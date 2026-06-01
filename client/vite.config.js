@@ -31,7 +31,7 @@ export default defineConfig({
     port: 1922,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://lichsuso.online',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
