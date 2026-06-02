@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, X, Search, Bot, User, BookOpen, Calendar, Info, HelpCircle } from 'lucide-react';
+import { Sparkles, Send, X, Search, Bot, User, BookOpen, Calendar, Info, HelpCircle, ExternalLink, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -27,6 +27,19 @@ const commonQA = {
   'rất vui': 'Tôi cũng vậy! 😊 Rất vui được giúp bạn tìm bài giảng.',
   'nice to meet': 'Rất vui được gặp bạn! 🤝 Tôi sẵn sàng hỗ trợ bạn.',
   'hẹn gặp lại': 'Hẹn gặp lại! 👋 Ghé thăm khi cần tìm tài liệu nhé!',
+
+  // ============================================
+  // VỀ SUNNY - DEVELOPER
+  // ============================================
+  'sunny là ai': 'Sunny là lập trình viên web, người đã xây dựng nên trang Lịch Sử Số này! 👨‍💻 Nếu bạn cần liên hệ, hãy gọi 0523372202 nhé!',
+  'ai làm ra trang này': 'Trang Lịch Sử Số được phát triển bởi Sunny - một lập trình viên web tài năng! 👨‍💻 Liên hệ: 0523372202 nếu bạn muốn trao đổi thêm.',
+  'lập trình viên': 'Lập trình viên của trang Lịch Sử Số là Sunny! 👨‍💻 Mọi thắc mắc kỹ thuật, liên hệ: 0523372202. Chúc bạn học tốt!',
+  'người tạo ra': 'Trang web này được tạo bởi Sunny - lập trình viên web. 📱 Liên hệ: 0523372202 nếu cần hỗ trợ!',
+  'liên hệ': 'Để liên hệ với lập trình viên Sunny, bạn có thể gọi: 0523372202 📞 Rất sẵn lòng hỗ trợ!',
+  'số điện thoại': 'Số điện thoại liên hệ: 0523372202 (Sunny - Lập trình viên) 📱',
+  '0523372202': '0523372202 là số điện thoại của Sunny - lập trình viên web, người đã xây dựng trang Lịch Sử Số này! 👨‍💻',
+  'mjé': '0523372202 là số điện thoại của Sunny - lập trình viên web của trang Lịch Sử Số! 👨‍💻 Mình là Sunny, rất vui được gặp bạn!',
+  'mje': '0523372202 là số điện thoại của Sunny - lập trình viên web của trang Lịch Sử Số! 👨‍💻 Mình là Sunny, rất vui được gặp bạn!',
 
   // ============================================
   // NGÀY/GIỜ & THỜI GIAN
@@ -372,11 +385,11 @@ const commonQA = {
   'phản hồi': 'Cảm ơn bạn đã phản hồi! 💬 Đội ngũ của chúng tôi sẽ tiếp nhận và phản hồi sớm nhất có thể.',
   'khiếu nại': 'Nếu có khiếu nại, bạn hãy gửi qua mục "Liên hệ" trên website với mô tả chi tiết. Chúng tôi sẽ xem xét và phản hồi. 📝',
   'kiến nghị': 'Bạn có thể gửi kiến nghị qua mục "Liên hệ" hoặc "Góp ý" trên website. Mọi ý kiến đều được lắng nghe! 📝',
-  'yêu cầu': 'Nếu có yêu cầu đặc biệt, bạn hãy liên hệ trực tiếp qua email trong mục "Liên hệ" để được hỗ trợ tốt nhất. 📧',
-  'báo cáo lỗi': 'Nếu phát hiện lỗi trên website, bạn hãy báo cáo qua mục "Liên hệ" với mô tả chi tiết: ảnh chụp màn hình, trình duyệt đang dùng... 🐛',
-  'lỗi website': 'Xin lỗi vì sự bất tiện này! 😔 Bạn hãy báo cáo lỗi qua mục "Liên hệ" trên website để đội ngũ kỹ thuật khắc phục nhanh nhất.',
-  'website không hoạt động': 'Nếu website không hoạt động, có thể do lỗi kết nối hoặc bảo trì. Bạn thử tải lại trang hoặc quay lại sau vài phút nhé! 🔄',
-  'không vào được': 'Nếu không vào được website, bạn thử: 1) Xóa cache trình duyệt, 2) Thử trình duyệt khác, 3) Kiểm tra kết nối internet. Nếu vẫn lỗi, hãy liên hệ qua email. 🌐',
+  'yêu cầu': 'Nếu có yêu cầu đặc biệt, bạn hãy liên hệ Sunny qua số 0523372202 để được hỗ trợ tốt nhất. 📧',
+  'báo cáo lỗi': 'Xin lỗi vì sự bất tiện! 😔 Bạn hãy liên hệ Sunny (0523372202) để báo cáo lỗi, kèm mô tả chi tiết và ảnh chụp màn hình nhé! 🐛',
+  'lỗi website': 'Xin lỗi vì sự bất tiện này! 😔 Để báo cáo lỗi, liên hệ Sunny: 0523372202. Mình sẽ khắc phục sớm nhất có thể!',
+  'website không hoạt động': 'Xin lỗi bạn! 😔 Có thể website đang bảo trì hoặc gặp lỗi. Bạn thử tải lại trang. Nếu vẫn lỗi, liên hệ Sunny: 0523372202 nhé! 🔄',
+  'không vào được': 'Nếu không vào được website, bạn thử: 1) Xóa cache trình duyệt, 2) Thử trình duyệt khác, 3) Kiểm tra kết nối internet. Nếu vẫn lỗi, gọi Sunny: 0523372202! 🌐',
   'quên mật khẩu': 'Để đặt lại mật khẩu, click vào "Quên mật khẩu" ở trang đăng nhập và làm theo hướng dẫn trong email. 🔐',
   'đổi mật khẩu': 'Bạn có thể đổi mật khẩu trong phần "Cài đặt tài khoản" sau khi đăng nhập. Nếu quên, hãy dùng "Quên mật khẩu". 🔐',
   'tài khoản': 'Để quản lý tài khoản, đăng nhập và vào phần "Tài khoản" hoặc "Cài đặt". Bạn có thể đổi thông tin, mật khẩu tại đây. 👤',
@@ -801,6 +814,137 @@ const searchSuggestions = [
   'Bài giảng cách mạng tháng Tám',
 ];
 
+// ============================================
+// SUGGESTION GROUPS - Contextual suggestions
+// ============================================
+
+// Default suggestions (shown when chat is empty)
+const defaultSuggestions = [
+  { text: 'Bài giảng lịch sử lớp 12', icon: BookOpen, category: 'lop12', keywords: ['lớp 12', 'lop 12', '12'] },
+  { text: 'Chiến tranh Việt Nam', icon: BookOpen, category: 'chientranh', keywords: ['chiến tranh', 'chientranh', 'viet nam'] },
+  { text: 'Ôn thi THPT', icon: BookOpen, category: 'onthi', keywords: ['ôn thi', 'thi thpt', 'thpt', 'onthi'] },
+  { text: 'Hồ Chí Minh', icon: BookOpen, category: 'hochiminh', keywords: ['hồ chí minh', 'ho chi minh', 'bac ho'] },
+  { text: 'Cách mạng tháng Tám', icon: BookOpen, category: 'cmt8', keywords: ['cách mạng tháng tám', 'cach mang thang 8', 'cmt8'] },
+  { text: 'Hướng dẫn tìm tài liệu', icon: HelpCircle, category: 'huongdan', keywords: ['hướng dẫn', 'huong dan', 'cách tìm'] },
+];
+
+// Contextual suggestions based on topic
+const contextualSuggestions = {
+  lop12: [
+    { text: 'Bài 1945-1975', icon: BookOpen, action: 'search', query: 'Việt Nam 1945 1975' },
+    { text: 'Bài sau 1975', icon: BookOpen, action: 'search', query: 'Việt Nam sau 1975' },
+    { text: 'Ôn thi lớp 12', icon: BookOpen, action: 'search', query: 'ôn thi lịch sử lớp 12' },
+    { text: 'Đề thi thử lớp 12', icon: BookOpen, action: 'search', query: 'đề thi lịch sử lớp 12' },
+    { text: 'Mốc thời gian quan trọng', icon: BookOpen, action: 'search', query: 'thời gian lịch sử Việt Nam' },
+    { text: 'Soạn bài lớp 12', icon: BookOpen, action: 'search', query: 'soạn bài lịch sử lớp 12' },
+  ],
+  lop11: [
+    { text: 'Lịch sử thế giới', icon: BookOpen, action: 'search', query: 'lịch sử thế giới lớp 11' },
+    { text: 'Cách mạng tư sản', icon: BookOpen, action: 'search', query: 'cách mạng tư sản' },
+    { text: 'Chiến tranh thế giới', icon: BookOpen, action: 'search', query: 'chiến tranh thế giới' },
+    { text: 'Ôn thi lớp 11', icon: BookOpen, action: 'search', query: 'ôn thi lịch sử lớp 11' },
+    { text: 'Các sự kiện lớp 11', icon: BookOpen, action: 'search', query: 'sự kiện lịch sử lớp 11' },
+    { text: 'Soạn bài lớp 11', icon: BookOpen, action: 'search', query: 'soạn bài lịch sử lớp 11' },
+  ],
+  lop10: [
+    { text: 'Việt Nam cổ đại', icon: BookOpen, action: 'search', query: 'Việt Nam cổ đại' },
+    { text: 'Bắc thuộc', icon: BookOpen, action: 'search', query: 'Bắc thuộc' },
+    { text: 'Các triều đại phong kiến', icon: BookOpen, action: 'search', query: 'triều đại phong kiến Việt Nam' },
+    { text: 'Ôn thi lớp 10', icon: BookOpen, action: 'search', query: 'ôn thi lịch sử lớp 10' },
+    { text: 'Nguồn gốc Việt Nam', icon: BookOpen, action: 'search', query: 'nguồn gốc Việt Nam' },
+    { text: 'Soạn bài lớp 10', icon: BookOpen, action: 'search', query: 'soạn bài lịch sử lớp 10' },
+  ],
+  chientranh: [
+    { text: 'Chiến tranh 1945-1954', icon: BookOpen, action: 'search', query: 'chiến tranh 1945 1954' },
+    { text: 'Chiến tranh 1954-1975', icon: BookOpen, action: 'search', query: 'chiến tranh 1954 1975' },
+    { text: 'Điện Biên Phủ', icon: BookOpen, action: 'search', query: 'Điện Biên Phủ' },
+    { text: 'Chiến dịch Hồ Chí Minh', icon: BookOpen, action: 'search', query: 'chiến dịch Hồ Chí Minh' },
+    { text: 'Đại thắng mùa Xuân 1975', icon: BookOpen, action: 'search', query: 'đại thắng mùa xuân 1975' },
+    { text: 'Tìm bài giảng chiến tranh', icon: BookOpen, action: 'search', query: 'bài giảng chiến tranh Việt Nam' },
+  ],
+  onthi: [
+    { text: 'Đề thi THPT 2024', icon: BookOpen, action: 'search', query: 'đề thi THPT 2024 lịch sử' },
+    { text: 'Đề thi thử', icon: BookOpen, action: 'search', query: 'đề thi thử lịch sử' },
+    { text: 'Ôn theo chủ đề', icon: BookOpen, action: 'search', query: 'ôn thi lịch sử theo chủ đề' },
+    { text: 'Mốc thời gian cần nhớ', icon: BookOpen, action: 'search', query: 'mốc thời gian lịch sử Việt Nam' },
+    { text: 'Phân tích bản đồ tư duy', icon: BookOpen, action: 'search', query: 'sơ đồ tư duy lịch sử' },
+    { text: 'Luyện đề trắc nghiệm', icon: BookOpen, action: 'search', query: 'trắc nghiệm lịch sử' },
+  ],
+  hochiminh: [
+    { text: 'Tiểu sử Hồ Chí Minh', icon: BookOpen, action: 'search', query: 'tiểu sử Hồ Chí Minh' },
+    { text: 'Đường lối cách mạng', icon: BookOpen, action: 'search', query: 'đường lối cách mạng Hồ Chí Minh' },
+    { text: 'Nhà tù Côn Đảo', icon: BookOpen, action: 'search', query: 'Hồ Chí Minh Côn Đảo' },
+    { text: 'Tìm bài về Bác', icon: BookOpen, action: 'search', query: 'bài giảng về Hồ Chí Minh' },
+    { text: 'Di chúc Hồ Chí Minh', icon: BookOpen, action: 'search', query: 'di chúc Hồ Chí Minh' },
+    { text: 'Hồ Chí Minh với Quốc tế', icon: BookOpen, action: 'search', query: 'Hồ Chí Minh và quốc tế' },
+  ],
+  cmt8: [
+    { text: 'Cách mạng tháng 8/1945', icon: BookOpen, action: 'search', query: 'cách mạng tháng 8 1945' },
+    { text: 'Chính phủ lâm thời', icon: BookOpen, action: 'search', query: 'chính phủ lâm thời 1945' },
+    { text: 'Tuyên ngôn độc lập', icon: BookOpen, action: 'search', query: 'tuyên ngôn độc lập 2/9' },
+    { text: 'Chuẩn bị cho CM8', icon: BookOpen, action: 'search', query: 'phong trào cách mạng trước 1945' },
+    { text: 'Soạn bài CM8', icon: BookOpen, action: 'search', query: 'soạn bài cách mạng tháng 8' },
+    { text: 'Ôn tập CM8', icon: BookOpen, action: 'search', query: 'ôn tập cách mạng tháng 8' },
+  ],
+  lichsuthengioi: [
+    { text: 'Chiến tranh thế giới', icon: BookOpen, action: 'search', query: 'chiến tranh thế giới' },
+    { text: 'Cách mạng Pháp', icon: BookOpen, action: 'search', query: 'cách mạng Pháp 1789' },
+    { text: 'Cách mạng Nga', icon: BookOpen, action: 'search', query: 'cách mạng Nga 1917' },
+    { text: 'Thế chiến I & II', icon: BookOpen, action: 'search', query: 'thế chiến 1 thế chiến 2' },
+    { text: 'Chiến tranh Lạnh', icon: BookOpen, action: 'search', query: 'chiến tranh lạnh' },
+    { text: 'Toàn cầu hóa', icon: BookOpen, action: 'search', query: 'toàn cầu hóa' },
+  ],
+  mucluc: [
+    { text: 'Tìm theo lớp', icon: BookOpen, action: 'search', query: 'bài giảng lịch sử' },
+    { text: 'Tìm theo chủ đề', icon: BookOpen, action: 'search', query: 'chủ đề lịch sử' },
+    { text: 'Tìm theo thời kỳ', icon: BookOpen, action: 'search', query: 'thời kỳ lịch sử' },
+    { text: 'Tìm nhân vật lịch sử', icon: BookOpen, action: 'search', query: 'nhân vật lịch sử' },
+    { text: 'Tìm sự kiện lịch sử', icon: BookOpen, action: 'search', query: 'sự kiện lịch sử' },
+    { text: 'Tìm hiệp định, hòa ước', icon: BookOpen, action: 'search', query: 'hiệp định hòa ước' },
+  ],
+  huongdan: [
+    { text: 'Cách tìm bài giảng', icon: HelpCircle, action: 'search', query: 'hướng dẫn tìm bài giảng' },
+    { text: 'Cách ôn thi hiệu quả', icon: HelpCircle, action: 'search', query: 'cách ôn thi lịch sử' },
+    { text: 'Phương pháp học sử', icon: HelpCircle, action: 'search', query: 'phương pháp học lịch sử' },
+    { text: 'Sơ đồ tư duy sử', icon: HelpCircle, action: 'search', query: 'sơ đồ tư duy lịch sử' },
+    { text: 'Mẹo nhớ lâu', icon: HelpCircle, action: 'search', query: 'mẹo nhớ lịch sử' },
+    { text: 'Cách trả lời điểm cao', icon: HelpCircle, action: 'search', query: 'cách trả lời bài thi lịch sử' },
+  ],
+};
+
+// Utility to detect topic from text
+const detectTopic = (text) => {
+  const lowerText = text.toLowerCase();
+  
+  // Check for class-specific keywords
+  if (/lớp\s*12|lop\s*12|12/.test(lowerText)) return 'lop12';
+  if (/lớp\s*11|lop\s*11|11/.test(lowerText)) return 'lop11';
+  if (/lớp\s*10|lop\s*10|10/.test(lowerText)) return 'lop10';
+  
+  // Check for topic-specific keywords
+  if (/chiến tranh|chientranh|điện biên|binh an|1975|1954/.test(lowerText)) return 'chientranh';
+  if (/ôn thi|thpt|đề thi|thi thử|onthi/.test(lowerText)) return 'onthi';
+  if (/hồ chí minh|ho chi minh|bac hồ|bác hồ/.test(lowerText)) return 'hochiminh';
+  if (/cách mạng tháng|cach mang thang|cmt8|cm tháng 8/.test(lowerText)) return 'cmt8';
+  if (/thế giới|the gioi|world/.test(lowerText)) return 'lichsuthengioi';
+  if (/mục lục|chủ đề|muc luc|chu de|hướng dẫn|cách tìm/.test(lowerText)) return 'mucluc';
+  if (/hướng dẫn|cách|hướng dẫn|cách học/.test(lowerText)) return 'huongdan';
+  
+  return null;
+};
+
+// Get suggestions based on context and history
+const getContextualSuggestions = (usedSuggestions, lastTopic = null) => {
+  // If there's a topic, get contextual suggestions for that topic
+  if (lastTopic && contextualSuggestions[lastTopic]) {
+    const topicSuggestions = contextualSuggestions[lastTopic];
+    return topicSuggestions.filter(s => !usedSuggestions.has(s.text));
+  }
+  
+  // Otherwise, return default suggestions not yet used
+  return defaultSuggestions.filter(s => !usedSuggestions.has(s.text));
+};
+
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -812,6 +956,11 @@ const AIChatWidget = () => {
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [usedSuggestions, setUsedSuggestions] = useState(new Set());
+  const [currentTopic, setCurrentTopic] = useState(null);
+  const [isIframeMode, setIsIframeMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [iframeSrc, setIframeSrc] = useState(null);
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
@@ -865,6 +1014,15 @@ const AIChatWidget = () => {
     setInputValue('');
     setIsLoading(true);
 
+    // Detect topic from user input
+    const detectedTopic = detectTopic(text);
+    if (detectedTopic) {
+      setCurrentTopic(detectedTopic);
+    }
+
+    // Mark input suggestions as used (only if clicking from suggestion chips)
+    // For typed input, we'll only track when clicking suggestion chips
+
     // Simulate bot typing
     setTimeout(() => {
       setMessages((prev) => [
@@ -915,12 +1073,49 @@ const AIChatWidget = () => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    // If it's a help question, just set it as input
-    if (suggestion.text.includes('?') || suggestion.text.includes('Hướng dẫn') || suggestion.text.includes('miễn phí') || suggestion.text.includes('ngày mấy')) {
-      setInputValue(suggestion.text);
-      inputRef.current?.focus();
+    // Mark this suggestion as used
+    setUsedSuggestions(prev => new Set([...prev, suggestion.text]));
+
+    // Detect topic from this suggestion
+    const detectedTopic = detectTopic(suggestion.text);
+    if (detectedTopic) {
+      setCurrentTopic(detectedTopic);
+    }
+
+    // If suggestion has direct action (search with query)
+    if (suggestion.action === 'search' && suggestion.query) {
+      // Navigate directly to search results
+      navigate(`/content?search=${encodeURIComponent(suggestion.query)}`);
+      
+      // Add user message showing what was searched
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), role: 'user', text: suggestion.text },
+        {
+          id: Date.now() + 1,
+          role: 'bot',
+          text: `Đang tìm kiếm: "${suggestion.query}"...`,
+        },
+      ]);
+
+      // Add completion message
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 2,
+            role: 'bot',
+            text: `Đã chuyển đến trang kết quả cho "${suggestion.query}". Chúc bạn học tốt! 📚`,
+          },
+        ]);
+      }, 800);
+      
+      // Close widget after navigation
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 1500);
     } else {
-      // Search questions
+      // For suggestions without direct action, set input for user to send
       setInputValue(suggestion.text);
       inputRef.current?.focus();
     }
@@ -991,89 +1186,205 @@ const AIChatWidget = () => {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-sm">
-                    Trợ lý tìm bài giảng
+                    {isIframeMode ? 'Tìm kiếm web' : 'Trợ lý tìm bài giảng'}
                   </h3>
-                  <p className="text-amber-100 text-xs">Online</p>
+                  <p className="text-amber-100 text-xs">{isIframeMode ? 'DuckDuckGo' : 'Online'}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-amber-50/50" style={{ maxHeight: '300px' }}>
-              {messages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
+              <div className="flex items-center gap-1">
+                <motion.button
+                  onClick={() => setIsIframeMode(!isIframeMode)}
+                  className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title={isIframeMode ? "Chuyển về chat" : "Tìm kiếm web"}
                 >
-                  {msg.role === 'bot' && (
-                    <div className="w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-white" />
-                    </div>
+                  {isIframeMode ? (
+                    <Bot className="w-4 h-4 text-white" />
+                  ) : (
+                    <Globe className="w-4 h-4 text-white" />
                   )}
-                  <div
-                    className={`px-3 py-2 rounded-xl text-sm ${
-                      msg.role === 'user'
-                        ? 'bg-amber-500 text-white rounded-tr-none'
-                        : 'bg-white border border-amber-200 text-gray-700 rounded-tl-none'
-                    }`}
-                  >
-                    {msg.isTyping ? (
-                      <div className="flex gap-1 py-1">
-                        <motion.span
-                          className="w-2 h-2 bg-amber-500 rounded-full"
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                        />
-                        <motion.span
-                          className="w-2 h-2 bg-amber-500 rounded-full"
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }}
-                        />
-                        <motion.span
-                          className="w-2 h-2 bg-amber-500 rounded-full"
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }}
-                        />
-                      </div>
-                    ) : (
-                      msg.text
-                    )}
-                  </div>
-                  {msg.role === 'user' && (
-                    <div className="w-7 h-7 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-amber-700" />
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-              <div ref={messagesEndRef} />
+                </motion.button>
+              </div>
             </div>
 
-            {/* Suggestions */}
-            {messages.length === 1 && (
-              <div className="px-3 pb-2">
-                <p className="text-xs text-gray-500 mb-2">Gợi ý nhanh:</p>
-                <div className="flex flex-wrap gap-1">
-                  {allSuggestions.map((suggestion, index) => {
-                    const IconComponent = suggestion.icon;
-                    return (
-                      <motion.button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1.5 rounded-full border border-amber-200 transition-colors flex items-center gap-1"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <IconComponent className="w-3 h-3" />
-                        {suggestion.text.length > 18 ? suggestion.text.substring(0, 18) + '...' : suggestion.text}
-                      </motion.button>
-                    );
-                  })}
+            {/* Iframe Search Mode */}
+            {isIframeMode ? (
+              <div className="flex flex-col flex-1">
+                {/* Search Input for Iframe */}
+                <div className="p-3 bg-white border-b border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          setIframeSrc(`https://duckduckgo.com/?q=${encodeURIComponent(searchQuery.trim() + ' lich su Viet Nam site:youtube.com OR site:vietjack.com OR site:loigiaihay.com OR site:moon.vn')}`);
+                        }
+                      }}
+                      placeholder="Tìm kiếm với DuckDuckGo..."
+                      className="flex-1 px-3 py-2 text-sm border border-amber-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-amber-50"
+                    />
+                    <motion.button
+                      onClick={() => {
+                        if (searchQuery.trim()) {
+                          setIframeSrc(`https://duckduckgo.com/?q=${encodeURIComponent(searchQuery.trim() + ' lich su Viet Nam')}`);
+                        }
+                      }}
+                      className="w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Search className="w-5 h-5" />
+                    </motion.button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-gray-500">Tìm trên:</span>
+                    <motion.a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (searchQuery.trim()) {
+                          setIframeSrc(`https://duckduckgo.com/?q=${encodeURIComponent(searchQuery.trim())}`);
+                        } else {
+                          setIframeSrc('https://duckduckgo.com/');
+                        }
+                      }}
+                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1 rounded-full"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      DuckDuckGo
+                    </motion.a>
+                    <motion.a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const query = searchQuery.trim() || '';
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                        toast.success('Đã mở Google!');
+                      }}
+                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Google <ExternalLink className="w-3 h-3" />
+                    </motion.a>
+                  </div>
+                </div>
+
+                {/* Iframe Container */}
+                <div className="flex-1 bg-white" style={{ height: '300px' }}>
+                  {iframeSrc ? (
+                    <iframe
+                      src={iframeSrc}
+                      className="w-full h-full border-0"
+                      title="DuckDuckGo Search"
+                      sandbox="allow-scripts allow-same-origin allow-forms"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
+                      <Globe className="w-12 h-12 text-amber-300 mb-2" />
+                      <p className="text-sm text-center">Nhập từ khóa và nhấn Enter để tìm kiếm</p>
+                      <p className="text-xs text-gray-400 mt-1">Tìm kiếm an toàn với DuckDuckGo</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-2 border-t border-amber-200 bg-white text-center">
+                  <p className="text-xs text-gray-400">Powered by DuckDuckGo</p>
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-amber-50/50" style={{ maxHeight: '300px' }}>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {msg.role === 'bot' && (
+                        <div className="w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Bot className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={`px-3 py-2 rounded-xl text-sm ${
+                          msg.role === 'user'
+                            ? 'bg-amber-500 text-white rounded-tr-none'
+                            : 'bg-white border border-amber-200 text-gray-700 rounded-tl-none'
+                        }`}
+                      >
+                        {msg.isTyping ? (
+                          <div className="flex gap-1 py-1">
+                            <motion.span
+                              className="w-2 h-2 bg-amber-500 rounded-full"
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                            />
+                            <motion.span
+                              className="w-2 h-2 bg-amber-500 rounded-full"
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }}
+                            />
+                            <motion.span
+                              className="w-2 h-2 bg-amber-500 rounded-full"
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }}
+                            />
+                          </div>
+                        ) : (
+                          msg.text
+                        )}
+                      </div>
+                      {msg.role === 'user' && (
+                        <div className="w-7 h-7 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-amber-700" />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Suggestions - Contextual and filtered */}
+                {messages.length > 0 && (
+                  <div className="px-3 pb-2">
+                    <p className="text-xs text-gray-500 mb-2">
+                      {currentTopic ? 'Gợi ý liên quan:' : 'Gợi ý nhanh:'}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {getContextualSuggestions(usedSuggestions, currentTopic).map((suggestion, index) => {
+                        const IconComponent = suggestion.icon;
+                        const displayText = suggestion.text.length > 20 
+                          ? suggestion.text.substring(0, 20) + '...' 
+                          : suggestion.text;
+                        return (
+                          <motion.button
+                            key={`${suggestion.text}-${index}`}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-2 py-1.5 rounded-full border border-amber-200 transition-colors flex items-center gap-1 cursor-pointer"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <IconComponent className="w-3 h-3 flex-shrink-0" />
+                            <span>{displayText}</span>
+                          </motion.button>
+                        );
+                      })}
+                      {getContextualSuggestions(usedSuggestions, currentTopic).length === 0 && (
+                        <p className="text-xs text-gray-400 italic">
+                          Đã xem hết gợi ý. Hãy hỏi tôi nhé!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Input */}

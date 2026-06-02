@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from 'react-query';
+import { motion } from 'framer-motion';
 import { Search, Download, Eye, Calendar, User, GraduationCap, Filter, X, Loader2, AlertCircle } from 'lucide-react';
 import { contentAPI, taxonomyAPI, getFileUrl } from '../services/api';
 import { Link, useLocation } from 'react-router-dom';
@@ -349,7 +350,14 @@ const ContentList = ({ category }) => {
           ) : teacherContents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {teacherContents.map((content, idx) => (
-                <div key={content._id || content.id || idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-amber-200 overflow-hidden">
+                <motion.div
+                  key={content._id || content.id || idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-amber-200 overflow-hidden"
+                >
                   {/* Banner Image */}
                   {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
                     <div className="w-full h-64 overflow-hidden">
@@ -439,7 +447,7 @@ const ContentList = ({ category }) => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -496,7 +504,12 @@ const ContentList = ({ category }) => {
           </div>
         )}
         {/* Student Content Section - Always shown */}
-        <div className="mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-12"
+        >
           <div className="flex items-center mb-6">
             <GraduationCap className="h-6 w-6 text-purple-600 mr-3" />
             <h2 className="text-2xl font-bold text-gray-900">Bài đăng của học sinh</h2>
@@ -510,7 +523,14 @@ const ContentList = ({ category }) => {
           ) : studentContents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {studentContents.map((content, idx) => (
-                <div key={content._id || content.id || idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-200 overflow-hidden">
+                <motion.div
+                  key={content._id || content.id || idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-200 overflow-hidden"
+                >
                   {/* Banner Image */}
                   {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
                     <div className="w-full h-64 overflow-hidden">
@@ -585,7 +605,7 @@ const ContentList = ({ category }) => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -599,7 +619,7 @@ const ContentList = ({ category }) => {
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
       
     </div>

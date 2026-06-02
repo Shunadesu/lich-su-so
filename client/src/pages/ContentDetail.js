@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from 'react-query';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Eye, Calendar, User, Tag, FileText, Loader2, AlertCircle, CheckCircle, Trash2, School, Clock, CheckCircle2, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { contentAPI, getFileUrl } from '../services/api';
 import useAuthStore from '../store/authStore';
@@ -281,9 +282,19 @@ const ContentDetail = () => {
   const canApprove = user && isTeacher() && !content.isApproved;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-50"
+    >
       {/* Back Button - Fixed at top */}
-      <div className="container mx-auto px-4 pt-4 pb-3 sm:pt-6 sm:pb-4">
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        className="container mx-auto px-4 pt-4 pb-3 sm:pt-6 sm:pb-4"
+      >
         <Link
           to="/"
           className="inline-flex items-center text-amber-700 hover:text-amber-800"
@@ -291,11 +302,16 @@ const ContentDetail = () => {
           <ArrowLeft className="h-5 w-5 mr-2" />
           Quay lại
         </Link>
-      </div>
+      </motion.div>
 
       {/* Banner Image - Full width, above title */}
       {content.bannerImage && typeof content.bannerImage === 'string' && content.bannerImage.trim() ? (
-        <div className="w-full h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-amber-100 to-orange-100"
+        >
           <img 
             src={getFileUrl(content.bannerImage)} 
             alt={content.title}
@@ -304,16 +320,26 @@ const ContentDetail = () => {
               e.target.style.display = 'none';
             }}
           />
-        </div>
+        </motion.div>
       ) : (
-        <div className="w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-amber-100 via-orange-100 to-red-100 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-amber-100 via-orange-100 to-red-100 flex items-center justify-center"
+        >
           <div className="text-center">
             <span className="text-6xl md:text-8xl">{getFileTypeIcon(content.contentType === 'youtube' ? 'youtube' : content.fileType)}</span>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="container mx-auto px-4 py-6 sm:py-8"
+      >
         {/* Content Header */}
         <div className="bg-white rounded-lg shadow-sm p-5 sm:p-8 mb-8 -mt-16 md:-mt-20 lg:-mt-24 relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
@@ -338,7 +364,9 @@ const ContentDetail = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2 w-full lg:w-auto">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleDownload}
                 disabled={isDownloading || downloadMutation.isLoading}
                 className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
@@ -354,9 +382,11 @@ const ContentDetail = () => {
                     Tải về
                   </>
                 )}
-              </button>
+              </motion.button>
               {canApprove && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleApprove}
                   disabled={approveMutation.isLoading}
                   className="flex items-center justify-center bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
@@ -372,10 +402,12 @@ const ContentDetail = () => {
                       Phê duyệt
                     </>
                   )}
-                </button>
+                </motion.button>
               )}
               {canDelete && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleDelete}
                   disabled={deleteMutation.isLoading}
                   className="flex items-center justify-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
@@ -391,7 +423,7 @@ const ContentDetail = () => {
                       Xóa bài đăng
                     </>
                   )}
-                </button>
+                </motion.button>
               )}
             </div>
           </div>
@@ -604,10 +636,10 @@ const ContentDetail = () => {
                   <p className="text-sm text-gray-600">{formatFileSize(content.fileSize)} • {getFileTypeLabel(content.fileType)}</p>
                 </div>
               </div>
-              <button
+              <motion.button
                 onClick={handleDownload}
                 disabled={isDownloading || downloadMutation.isLoading}
-              className="flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                className="flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 {isDownloading || downloadMutation.isLoading ? (
                   <>
@@ -620,12 +652,12 @@ const ContentDetail = () => {
                     Tải về
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

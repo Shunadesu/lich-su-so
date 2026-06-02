@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
+import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import 'swiper/css';
@@ -298,22 +299,34 @@ const Home = () => {
       {/* Categories Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Danh mục tài liệu
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Khám phá kho tài liệu phong phú được tổ chức theo từng lớp học và chủ đề
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {dynamicCategories.map((category) => (
-              <Link
+            {dynamicCategories.map((category, index) => (
+              <motion.div
                 key={category.id}
-                to={category.link || `/${category.id}`}
-                className="group block bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden h-full"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
               >
+                <Link
+                  to={category.link || `/${category.id}`}
+                  className="group block bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden h-full"
+                >
                 <div className="flex flex-col h-full">
                   <div className={`${category.color} text-white p-8 relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-black/10"></div>
@@ -344,6 +357,7 @@ const Home = () => {
                   </div>
                 </div>
               </Link>
+            </motion.div>
             ))}
           </div>
         </div>
@@ -352,18 +366,31 @@ const Home = () => {
       {/* Features Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Tính năng nổi bật
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Hệ thống được thiết kế với những tính năng hiện đại, đáp ứng mọi nhu cầu học tập
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="text-center group">
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="text-center group"
+              >
                 <div className={`w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-6 group-hover:bg-amber-100 transition-all duration-300`}>
                   <feature.icon className={`h-10 w-10 ${feature.color}`} />
                 </div>
@@ -371,7 +398,7 @@ const Home = () => {
                 <p className="text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -379,8 +406,20 @@ const Home = () => {
 
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-amber-950 to-orange-950 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="bg-gradient-to-r from-amber-950 to-orange-950 text-white py-20"
+      >
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="container mx-auto px-4 text-center"
+        >
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">
               Bắt đầu hành trình học tập ngay hôm nay
@@ -389,7 +428,13 @@ const Home = () => {
               Tham gia cộng đồng học tập lịch sử trực tuyến với hàng nghìn tài liệu chất lượng cao
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-6 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               <Link
                 to="/content"
                 className="bg-white text-amber-900 px-8 py-4 rounded-xl font-semibold hover:bg-amber-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
@@ -410,10 +455,10 @@ const Home = () => {
                   </div>
                 </Link>
               )}
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
     </div>
   );
 };

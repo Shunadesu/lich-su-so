@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   FileText, 
   Image, 
@@ -64,7 +65,15 @@ const StudentFeatures = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {features.map((feature, index) => (
-          <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            whileHover={{ scale: 1.02 }}
+            className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+          >
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 {feature.icon}
@@ -78,19 +87,24 @@ const StudentFeatures = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       <div className="text-center">
-        <Link
-          to="/upload"
-          className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Plus className="h-5 w-5" />
-          <span>Bắt đầu đăng tải</span>
-          <ArrowRight className="h-5 w-5" />
-        </Link>
+          <Link
+            to="/upload"
+            className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Bắt đầu đăng tải</span>
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </motion.div>
         
         <div className="mt-4 text-sm text-gray-600">
           <div className="flex items-center justify-center space-x-2">
