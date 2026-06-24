@@ -14,71 +14,21 @@ const taxonomyRoutes = require(path.join(__dirname, 'routes', 'taxonomy.js'));
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS Configuration
+// Trust proxy (required for rate limiting behind reverse proxy like nginx)
+app.set('trust proxy', 1);
+
+// CORS Configuration - Allow all origins
 const corsOptions = {
-  origin: function (origin, callback) {
-    // In development, allow all origins
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    // In production, only allow specific origins
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:1912', // Admin panel
-      'http://localhost:1922', // Client
-      'https://lich-su-so.onrender.com',
-      'https://lich-su-so-client.onrender.com',
-      'https://lich-su-so.vercel.app',
-      'https://lich-su-so.netlify.app',
-      'https://lich-su-so-zuna.vercel.app',
-      'https://du-lieu-lich-su-so.vercel.app',
-      // Allow all Vercel domains (wildcard pattern)
-      /^https:\/\/.*\.vercel\.app$/,
-      /^https:\/\/.*\.vercel\.dev$/,
-      process.env.FRONTEND_URL
-    ].filter(Boolean); // Remove undefined values
-    
-    // Check if origin matches any allowed pattern
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') {
-        return allowed === origin;
-      } else if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
-      return false;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: '*', // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400 // 24 hours
 };
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.render.com"]
-    }
-  }
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
