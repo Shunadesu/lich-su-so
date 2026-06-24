@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
-import { useMutation } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import toast from 'react-hot-toast';
-import { authAPI } from '../services/api';
+import { authAPI, taxonomyAPI } from '../services/api';
 import useAuthStore from '../store/authStore';
 
 const Register = () => {
@@ -21,6 +21,14 @@ const Register = () => {
   
   const navigate = useNavigate();
   const { login } = useAuthStore();
+
+  // Fetch grades for dropdown
+  const { data: taxonomyData } = useQuery(
+    'taxonomy-tree',
+    () => taxonomyAPI.getTree(),
+    { staleTime: 5 * 60 * 1000 }
+  );
+  const grades = taxonomyData?.data?.data || [];
 
   const registerMutation = useMutation(authAPI.register, {
     onSuccess: (response) => {
@@ -178,15 +186,20 @@ const Register = () => {
                 Lớp
               </label>
               <div className="mt-1">
-                <input
+                <select
                   id="grade"
                   name="grade"
-                  type="text"
                   value={formData.grade}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
-                  placeholder="Nhập lớp học"
-                />
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm bg-white"
+                >
+                  <option value="">-- Chọn lớp học --</option>
+                  {grades.map((grade) => (
+                    <option key={grade._id} value={grade._id}>
+                      {grade.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

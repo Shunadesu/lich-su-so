@@ -77,6 +77,9 @@ const UploadContent = () => {
 
     const userGradeCandidates = normalizeCandidates(normalizedUserGrade);
     const matchesUserGrade = (grade) => {
+      if (rawUserGrade && grade._id === rawUserGrade) {
+        return true;
+      }
       const gradeNames = normalizeCandidates(grade.name);
       const gradeSlugs = normalizeCandidates(grade.slug);
       return userGradeCandidates.some((c) => gradeNames.includes(c) || gradeSlugs.includes(c));

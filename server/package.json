@@ -10,7 +10,9 @@
     "test": "echo 'No tests specified'",
     "create-admin": "node scripts/createAdmin.js",
     "reset-seed": "node scripts/resetAndSeedTaxonomy.js",
-    "fake-data": "node scripts/createFakeData.js"
+    "fake-data": "node scripts/createFakeData.js",
+    "fake-teachers": "node scripts/createFakeTeachers.js",
+    "migrate-grade": "node scripts/migrateGradeToGradeId.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
